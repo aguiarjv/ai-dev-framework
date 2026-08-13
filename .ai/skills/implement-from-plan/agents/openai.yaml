@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement From Plan"
+  short_description: "Execute accepted plans with verification."
+  default_prompt: "Use this skill to implement an accepted plan while preserving scope, user changes, and verification discipline."

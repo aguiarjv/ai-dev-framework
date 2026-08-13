@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review PR"
+  short_description: "Perform rigorous code reviews."
+  default_prompt: "Use this skill to review a diff or branch for bugs, regressions, security risks, and missing tests."

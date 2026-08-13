@@ -1,0 +1,36 @@
+name: core
+description: Core portable AI guidance, custom agents, and reusable skills.
+version: 0.1.0
+guide: base
+guides:
+  - frontend
+  - backend
+adapters:
+  - codex
+  - claude
+templates:
+  - task-spec
+  - local-progress
+  - adr
+  - harness-registry
+  - harness-script
+  - harness-entry
+harnesses:
+  - registry
+agents:
+  - orchestrator
+  - planner
+  - architect
+  - explorer
+  - implementer
+  - reviewer
+  - test-debugger
+  - docs-researcher
+skills:
+  - repo-onboarding
+  - plan-feature
+  - implement-from-plan
+  - review-pr
+  - debug-failing-tests
+  - release-readiness
+  - create-harness
