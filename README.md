@@ -40,7 +40,7 @@ If an existing target file differs, the installer stops. Re-run with `--force` o
 - `harness/` as an empty project-owned folder for validation scripts or wrappers.
 - `.ai-dev-framework.json` install manifest with pack, timestamp, and copied file list.
 
-The core guide makes the main chat behave as an orchestrator by default. For new implementation work, the orchestrator clarifies intent, creates `docs/tasks/<task-slug>.md`, waits for approval, then delegates step-by-step work. Progress lives in `.local/tasks/<task-slug>/progress.md`, and durable decisions go in `docs/adr/`.
+The core guide makes the main chat behave as an orchestrator by default. For new implementation work, the orchestrator clarifies intent, uses `explorer` when repository context is unclear or non-trivial, and creates `docs/tasks/<task-slug>.md` with the implementation plan, acceptance criteria, relevant ADR references, and classified tasks or subtasks. It waits for explicit approval before code changes begin. Progress, exploration findings, ADR summaries, and handoffs live in `.local/tasks/<task-slug>/progress.md`, and durable decisions go in `docs/adr/`. Broad ADR discovery belongs to `explorer`; downstream agents use the handed-off ADR summaries or named ADR paths instead of scanning every ADR.
 
 Reviewer, debugger, and implementer agents read `.ai/harnesses/registry.md` before choosing validation commands. Use the `create-harness` skill to add repeatable validation scripts and registry entries. The top-level `harness/` folder is available for project-owned validation scripts or wrappers.
 

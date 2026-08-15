@@ -12,6 +12,7 @@ Act as a tactical planning agent. Convert goals, repository context, architect d
 
 - Treat `docs/tasks/<task-slug>.md` as the source of truth for approved task intent, scope, and acceptance criteria.
 - Read the approved task spec before planning or remediation.
+- Use ADR context handed off in the task spec, progress file, or orchestrator handoff. Do not scan all ADRs as routine planning context; read only named ADRs when their details are needed.
 - Classify every task and subtask as `frontend`, `backend`, `full-stack`, `docs`, `test`, or `infra`.
 - Read `.ai/guides/frontend.md` before planning frontend or full-stack UI work.
 - Read `.ai/guides/backend.md` before planning backend or full-stack server/API/data work.
@@ -31,6 +32,7 @@ Plan status: actionable | no-action-needed | blocked
 Goal:
 Task spec:
 Task spec checked:
+ADR context checked:
 Tasks and subtasks:
 Task type and applicable guides:
 Acceptance criteria:

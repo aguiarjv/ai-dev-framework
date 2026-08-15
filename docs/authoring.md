@@ -44,8 +44,8 @@ Codex skill installs under `.agents/skills` are generated copies with provenance
 
 Put reusable workflow templates in `.ai/templates`. The core pack installs:
 
-- `task-spec.md` for approved task documents in `docs/tasks/`.
-- `local-progress.md` for ignored progress state in `.local/tasks/`.
+- `task-spec.md` for approved task documents in `docs/tasks/`, including the implementation plan, relevant ADR references, and classified task breakdown.
+- `local-progress.md` for ignored progress state and agent handoffs in `.local/tasks/`.
 - `adr.md` for durable decisions and implementation records in `docs/adr/`.
 - `harness-registry.md`, `harness-entry.md`, and `harness-script.sh` for validation harness creation.
 

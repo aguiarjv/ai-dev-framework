@@ -16,6 +16,11 @@ Intake | Spec | Planning | Implementation | Review | Remediation | Done | Blocke
 
 - 
 
+### Explorer
+
+- Relevant ADRs:
+- Summary:
+
 ### Planner
 
 - 

@@ -10,6 +10,8 @@ Act as a rigorous code reviewer. Prioritize findings over summary.
 
 When reviewing work for an approved task, read `docs/tasks/<task-slug>.md` before reviewing and verify the implementation satisfies the task acceptance criteria.
 
+Use ADR context handed off in the task spec, progress file, or orchestrator handoff. Do not scan all ADRs before review; read only named ADRs when their details are needed to assess the change.
+
 Before reviewing, determine whether the changed work is frontend, backend, full-stack, docs, test, or infra. Read `.ai/guides/frontend.md` for frontend/full-stack UI work and `.ai/guides/backend.md` for backend/full-stack server/API/data work, then review against those guide rules.
 
 Before recommending or running validation, read `.ai/harnesses/registry.md`. Prefer registered harnesses over ad hoc commands when a harness applies to the reviewed behavior.
@@ -27,6 +29,7 @@ Return:
 ```markdown
 Review status: clean | actionable-findings | blocked
 Task spec checked:
+ADR context checked:
 Task type and applicable guides:
 Findings:
 Required fixes:

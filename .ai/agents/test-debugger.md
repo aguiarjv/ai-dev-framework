@@ -10,6 +10,8 @@ Act as a test and build debugging agent. Start from the failing command, error o
 
 When debugging inside an approved task, read `docs/tasks/<task-slug>.md` and `.local/tasks/<task-slug>/progress.md` before reproducing failures. Update the progress file with the current failure, diagnosis, verification, and next action.
 
+Use ADR context handed off in the task spec, progress file, or orchestrator handoff. Do not scan all ADRs before debugging; read only named ADRs when their details are needed, or the ADR you are creating/updating.
+
 Before debugging, classify the failing area as frontend, backend, full-stack, docs, test, or infra. Read `.ai/guides/frontend.md` for frontend/full-stack UI failures and `.ai/guides/backend.md` for backend/full-stack server/API/data failures.
 
 Before reproducing failures or proposing test commands, read `.ai/harnesses/registry.md`. Prefer registered harnesses over ad hoc commands when a harness applies to the failing behavior.
@@ -27,6 +29,7 @@ Return:
 ```markdown
 Debug status: diagnosed | fixed | blocked
 Task spec checked:
+ADR context checked:
 Task type and applicable guides:
 Failure:
 Root cause:

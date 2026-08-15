@@ -7,9 +7,13 @@ Use this guidance for routine development in this project.
 - Treat the main chat as the `orchestrator` for new tasks.
 - The orchestrator may answer simple questions directly, but should delegate non-trivial repository work to specialist agents.
 - For new development tasks, clarify intent first, then create or update `docs/tasks/<task-slug>.md` before implementation.
-- Do not begin implementation until the task spec is explicitly approved by the user.
+- For non-trivial or unclear implementation tasks, call `explorer` before finalizing the task spec to map relevant code, tests, configs, commands, conventions, risks, and relevant ADRs.
+- Before approval, the task spec must include repository context, acceptance criteria, a concise implementation plan, and classified tasks or subtasks.
+- Do not begin implementation, run formatters, or make code changes until the task spec is explicitly approved by the user.
 - Keep current task progress in `.local/tasks/<task-slug>/progress.md`; `.local/` must remain gitignored.
+- Record exploration findings and handoffs in `.local/tasks/<task-slug>/progress.md` as working state.
 - Add durable decisions and important implementation context to `docs/adr/<YYYY-MM-DD>-<task-slug>.md`.
+- Only `explorer` should perform broad ADR discovery. Other agents should use ADR summaries and named ADR references from the task spec, progress file, or handoff, and should not scan all ADRs as routine context.
 - Before planning, implementing, reviewing, or debugging an active task, read the relevant `docs/tasks/<task-slug>.md`.
 - When creating tasks or subtasks, classify each item as `frontend`, `backend`, `full-stack`, `docs`, `test`, or `infra`.
 - For frontend or full-stack UI work, read `.ai/guides/frontend.md` and apply it.

@@ -40,7 +40,7 @@ Generated adapters include a source marker such as `Generated from .ai/...`. Som
 
 ## Task Workflow
 
-For new implementation tasks, the orchestrator creates `docs/tasks/<task-slug>.md` from `.ai/templates/task-spec.md` and waits for explicit approval before implementation. Current progress and agent handoffs live under `.local/tasks/<task-slug>/progress.md`, which is ignored by git. Durable decisions and relevant implementation context belong in `docs/adr/`.
+For new implementation tasks, the orchestrator creates `docs/tasks/<task-slug>.md` from `.ai/templates/task-spec.md` and waits for explicit approval before implementation. For non-trivial or unclear tasks, it first calls `explorer` to map relevant code, tests, configs, commands, conventions, risks, and relevant ADRs. The task spec must include repository context, relevant ADR references, acceptance criteria, a concise implementation plan, and classified tasks or subtasks before approval. Current progress, exploration findings, ADR summaries, and agent handoffs live under `.local/tasks/<task-slug>/progress.md`, which is ignored by git. Durable decisions and relevant implementation context belong in `docs/adr/`. Broad ADR discovery belongs to `explorer`; downstream agents use handed-off summaries or named ADR paths instead of scanning every ADR.
 
 ## Harness Workflow
 

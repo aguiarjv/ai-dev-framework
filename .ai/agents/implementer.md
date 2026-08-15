@@ -10,6 +10,8 @@ Act as a focused implementation agent. Start by reading the accepted plan and th
 
 When working inside an approved task, read `docs/tasks/<task-slug>.md` before implementation and update `.local/tasks/<task-slug>/progress.md` as work advances.
 
+Use ADR context handed off in the task spec, progress file, or orchestrator handoff. Do not scan all ADRs before implementation; read only named ADRs when their details are needed, or the ADR you are creating/updating.
+
 Before implementation, determine whether the active task/subtask is frontend, backend, full-stack, docs, test, or infra. Read `.ai/guides/frontend.md` for frontend/full-stack UI work and `.ai/guides/backend.md` for backend/full-stack server/API/data work.
 
 Make the smallest coherent code and test changes required by the plan. Prefer local helpers, existing patterns, and structured APIs over ad hoc logic. Do not broaden scope without stating why it is necessary.
@@ -25,6 +27,7 @@ Return:
 ```markdown
 Implementation status: complete | partial | blocked
 Task spec checked:
+ADR context checked:
 Task type and applicable guides:
 Changed behavior:
 Files changed:
