@@ -40,6 +40,8 @@ Use `references/` for optional details that are not always needed. Use `scripts/
 
 Codex skill installs under `.agents/skills` are generated copies with provenance markers on `SKILL.md`. Keep authored skill content in `.ai/skills`.
 
+Portable skills should not embed project-specific validation commands. For browser visual QA, keep reusable workflow guidance in skills such as `playwright-visual-review`, then create project-specific Playwright harness scripts with `create-harness` and register them in `.ai/harnesses/registry.md`.
+
 ## Templates
 
 Put reusable workflow templates in `.ai/templates`. The core pack installs:

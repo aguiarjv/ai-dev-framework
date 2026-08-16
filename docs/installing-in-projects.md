@@ -45,3 +45,5 @@ For new implementation tasks, the orchestrator creates `docs/tasks/<task-slug>.m
 ## Harness Workflow
 
 The installed framework includes `.ai/harnesses/registry.md`. Reviewer, implementer, and test-debugger agents read that registry before choosing validation commands. Use the `create-harness` skill to create `.ai/harnesses/scripts/<harness-slug>.sh`, validate it, and add or update the registry entry. The top-level `harness/` folder is empty by default and can hold project-owned validation scripts or wrappers.
+
+The core pack also installs `playwright-visual-review`, a portable workflow skill for browser visual QA. It does not install Playwright dependencies or generic browser scripts; each target project should add its own Playwright harness, scenarios, selectors, app startup command, and report paths when visual review is needed.

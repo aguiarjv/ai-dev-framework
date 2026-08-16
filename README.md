@@ -33,6 +33,7 @@ If an existing target file differs, the installer stops. Re-run with `--force` o
 - `.codex/agents/*.toml` generated from `.ai/agents/*.md`.
 - `.claude/agents/*.md` generated from `.ai/agents/*.md`.
 - `.agents/skills/*` generated from `.ai/skills/*` for Codex skill discovery.
+- A portable `playwright-visual-review` skill for browser visual QA workflows when projects register their own Playwright harnesses.
 - `.ai/templates/*` task, progress, and ADR templates.
 - `.ai/harnesses/registry.md` and `.ai/harnesses/scripts/` for reusable validation harnesses.
 - `docs/tasks/` and `docs/adr/` working directories.
@@ -42,7 +43,7 @@ If an existing target file differs, the installer stops. Re-run with `--force` o
 
 The core guide makes the main chat behave as an orchestrator by default. For new implementation work, the orchestrator clarifies intent, uses `explorer` when repository context is unclear or non-trivial, and creates `docs/tasks/<task-slug>.md` with the implementation plan, acceptance criteria, relevant ADR references, and classified tasks or subtasks. It waits for explicit approval before code changes begin. Progress, exploration findings, ADR summaries, and handoffs live in `.local/tasks/<task-slug>/progress.md`, and durable decisions go in `docs/adr/`. Broad ADR discovery belongs to `explorer`; downstream agents use the handed-off ADR summaries or named ADR paths instead of scanning every ADR.
 
-Reviewer, debugger, and implementer agents read `.ai/harnesses/registry.md` before choosing validation commands. Use the `create-harness` skill to add repeatable validation scripts and registry entries. The top-level `harness/` folder is available for project-owned validation scripts or wrappers.
+Reviewer, debugger, and implementer agents read `.ai/harnesses/registry.md` before choosing validation commands. Use the `create-harness` skill to add repeatable validation scripts and registry entries. Use `playwright-visual-review` when a project has or needs a registered browser visual QA harness. The top-level `harness/` folder is available for project-owned validation scripts or wrappers.
 
 Tool-specific files are generated adapters. They include source provenance comments and should be regenerated from `.ai/` instead of edited directly. Some adapters expand `.ai` content instead of referencing it because Codex and Claude load agents and skills through different native formats.
 

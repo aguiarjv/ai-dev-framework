@@ -16,3 +16,4 @@ Use this guide for UI, client-side state, browser behavior, views, pages, compon
 - Keep accessibility, loading, empty, error, and disabled states aligned with the surrounding UI.
 - Test behavior at the logic boundary and user-facing flow, not internal component details unless the project already does that.
 - When a task mixes UI and logic, create separate subtasks for component work and logic/module work.
+- For UI work where browser rendering matters, prefer registered visual harnesses when available. Use `playwright-visual-review` for responsive layout, overlap, overflow, blank-render, screenshot report, or visual QA workflows.

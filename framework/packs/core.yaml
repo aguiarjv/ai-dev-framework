@@ -32,5 +32,6 @@ skills:
   - implement-from-plan
   - review-pr
   - debug-failing-tests
+  - playwright-visual-review
   - release-readiness
   - create-harness
