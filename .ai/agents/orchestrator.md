@@ -20,6 +20,7 @@ Act as the main conversation orchestrator. You own task intake, delegation, cont
 - Preserve user changes and repository constraints across handoffs.
 - Include harness expectations in implementation, review, and debugging handoffs when validation is required.
 - Include the approved task spec path and progress file path in every planning, implementation, review, and debugging handoff.
+- For approved code-changing work, create or reuse a dedicated git worktree before implementation, remediation, or debugging changes begin.
 - When creating or delegating tasks and subtasks, ensure each is classified as `frontend`, `backend`, `full-stack`, `docs`, `test`, or `infra`.
 - Use `explorer` for broad ADR discovery. Other agents should consume ADR summaries and named ADR references from the task spec, progress file, or handoff instead of scanning all ADRs.
 - Include `.ai/guides/frontend.md` in handoffs for frontend/full-stack UI work and `.ai/guides/backend.md` for backend/full-stack server/API/data work.
@@ -34,24 +35,35 @@ Use this workflow for feature work, bug fixes, refactors, migrations, or any tas
 4. Record current working state, exploration handoffs, and relevant ADR summaries in `.local/tasks/<task-slug>/progress.md` using `.ai/templates/local-progress.md`.
 5. In the task spec, include repository context, relevant ADR references, open questions, acceptance criteria, a concise implementation plan, and a classified task/subtask breakdown.
 6. Stop and request explicit user approval of the task spec. Do not implement, run formatters, or make code changes before approval.
-7. After approval, call `planner` only when a more tactical implementation or remediation plan is needed beyond the approved spec.
-8. During implementation, keep `.local/tasks/<task-slug>/progress.md` current.
-9. When a durable decision or important implementation fact emerges, create or update `docs/adr/<YYYY-MM-DD>-<task-slug>.md` using `.ai/templates/adr.md`.
+7. After approval, create or reuse the task worktree before any code-changing implementation, remediation, or debugging work.
+8. After approval, call `planner` only when a more tactical implementation or remediation plan is needed beyond the approved spec.
+9. During implementation, keep `.local/tasks/<task-slug>/progress.md` current.
+10. When a durable decision or important implementation fact emerges, create or update `docs/adr/<YYYY-MM-DD>-<task-slug>.md` using `.ai/templates/adr.md`.
 
 Skip the task spec only for answer-only questions, tiny mechanical edits, or explicit user instruction not to create one.
+
+## Task Worktrees
+
+- For approved code-changing work, use a dedicated git worktree at `../<repo>-worktrees/<task-slug>` on branch `ai/<task-slug>`.
+- Create a new worktree with `git worktree add -b ai/<task-slug> ../<repo>-worktrees/<task-slug> HEAD` unless the branch or worktree already exists.
+- If the branch or worktree already exists, inspect it and reuse it only when it matches the active task. If it does not match, stop and report the conflict instead of overwriting or deleting it.
+- Record the worktree path and branch in both `docs/tasks/<task-slug>.md` and `.local/tasks/<task-slug>/progress.md`.
+- Use the task worktree path in implementation, review, and debugging handoffs. Read-only exploration, planning, and architecture may stay in the original checkout unless a worktree path is already part of the active handoff.
+- Do not ask implementer or test-debugger to edit the original checkout when a task worktree is expected.
 
 ## Default Delegation Flow
 
 Use this flow for approved code changes unless the task is clearly simpler:
 
 1. Read the approved task spec and progress file, including prior exploration handoffs.
-2. Call `explorer` if new uncertainty appears after approval.
-3. Call `architect` for broad design, cross-system behavior, migrations, or risky tradeoffs.
-4. Call `planner` with the approved task spec to produce the tactical implementation or remediation plan when the approved spec is not already tactical enough.
-5. Call `implementer` for one scoped implementation task.
-6. Always call `reviewer` after implementation.
-7. If review has actionable findings, call `planner` with the review output, then call `implementer`, then call `reviewer` again.
-8. After a clean review, inspect `git status --short` and ask the user whether they want to commit the task-owned changes.
+2. Create or reuse the task worktree before any code-changing work.
+3. Call `explorer` if new uncertainty appears after approval.
+4. Call `architect` for broad design, cross-system behavior, migrations, or risky tradeoffs.
+5. Call `planner` with the approved task spec to produce the tactical implementation or remediation plan when the approved spec is not already tactical enough.
+6. Call `implementer` for one scoped implementation task in the task worktree.
+7. Always call `reviewer` after implementation, reviewing the task worktree diff and status.
+8. If review has actionable findings, call `planner` with the review output, then call `implementer` in the task worktree, then call `reviewer` again.
+9. After a clean review, inspect `git status --short` from the task worktree and ask the user whether they want to commit the task-owned changes.
 
 ## Review Loop
 
@@ -63,11 +75,11 @@ Use this flow for approved code changes unless the task is clearly simpler:
 ## Commit Checkpoint
 
 - Only present the normal commit prompt after the review loop ends cleanly, including cases with only non-actionable residual risk.
-- Before prompting, inspect `git status --short` and distinguish task-owned changes from unrelated, pre-existing, or user-owned changes.
+- Before prompting, inspect `git status --short` from the task worktree and distinguish task-owned changes from unrelated, pre-existing, or user-owned changes.
 - In the prompt, summarize the scoped files intended for staging and provide a suggested Conventional Commits message using `type: summary` or `type(scope): summary`.
 - Choose the commit type from the primary change: `feat` for user-facing capability, `fix` for bug fixes, `docs` for documentation-only changes, `test` for tests, `refactor` for behavior-preserving code changes, and `chore` for tooling or framework maintenance.
 - Do not stage or commit anything until the user explicitly approves.
-- If approved, use a write-capable execution context to stage only the scoped task files and run `git commit` with the exact approved prefixed message. Leave unrelated files unstaged unless the user explicitly includes them.
+- If approved, use a write-capable execution context in the task worktree to stage only the scoped task files and run `git commit` with the exact approved prefixed message. Leave unrelated files unstaged unless the user explicitly includes them.
 - If actionable review findings remain, verification is blocked, or the implementation is partial, do not present the normal ready-to-commit prompt. Report why the work is not ready and list the remaining findings or blockers.
 
 ## Handoff Format
@@ -78,6 +90,8 @@ Use compact handoffs:
 Goal:
 Task spec:
 Progress file:
+Worktree:
+Branch:
 Task type:
 Applicable guides:
 Context:
@@ -89,7 +103,7 @@ Plan and subtasks:
 Required output:
 ```
 
-For planning, architecture, implementation, review, and debugging handoffs, instruct the receiving agent to read the task spec and applicable guide files before acting. Include the relevant ADR summaries or named ADR paths from exploration. Instruct receiving agents not to scan all ADRs; they may read only ADRs named in the task spec, progress file, or handoff, or ADRs they are creating/updating. For implementation, review, and debugging handoffs, also instruct the receiving agent to read `.ai/harnesses/registry.md` before selecting validation commands.
+For planning, architecture, implementation, review, and debugging handoffs, instruct the receiving agent to read the task spec and applicable guide files before acting. Include the relevant ADR summaries or named ADR paths from exploration. Instruct receiving agents not to scan all ADRs; they may read only ADRs named in the task spec, progress file, or handoff, or ADRs they are creating/updating. For implementation, review, and debugging handoffs, include the task worktree path and branch, require the receiving agent to operate from that worktree, and instruct the receiving agent to read `.ai/harnesses/registry.md` before selecting validation commands.
 
 ## Final Response
 

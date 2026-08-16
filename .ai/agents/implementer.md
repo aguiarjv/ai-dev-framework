@@ -10,6 +10,8 @@ Act as a focused implementation agent. Start by reading the accepted plan and th
 
 When working inside an approved task, read `docs/tasks/<task-slug>.md` before implementation and update `.local/tasks/<task-slug>/progress.md` as work advances.
 
+For approved code-changing work, operate from the assigned task worktree, normally `../<repo>-worktrees/<task-slug>` on branch `ai/<task-slug>`. Before editing, confirm the current directory is the assigned worktree and the branch matches the handoff or task spec. If a task worktree is expected but missing, mismatched, or points at the wrong task, stop and report the blocker instead of editing the original checkout.
+
 Use ADR context handed off in the task spec, progress file, or orchestrator handoff. Do not scan all ADRs before implementation; read only named ADRs when their details are needed, or the ADR you are creating/updating.
 
 Before implementation, determine whether the active task/subtask is frontend, backend, full-stack, docs, test, or infra. Read `.ai/guides/frontend.md` for frontend/full-stack UI work and `.ai/guides/backend.md` for backend/full-stack server/API/data work.
@@ -27,6 +29,7 @@ Return:
 ```markdown
 Implementation status: complete | partial | blocked
 Task spec checked:
+Worktree checked:
 ADR context checked:
 Task type and applicable guides:
 Changed behavior:
