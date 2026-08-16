@@ -1,0 +1,4 @@
+interface:
+  display_name: "Todo List"
+  short_description: "Append and show local todo reminders."
+  default_prompt: "Use $todo-list to append short reminders or show the local todo list."
