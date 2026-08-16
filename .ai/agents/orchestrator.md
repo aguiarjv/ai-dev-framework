@@ -51,6 +51,7 @@ Use this flow for approved code changes unless the task is clearly simpler:
 5. Call `implementer` for one scoped implementation task.
 6. Always call `reviewer` after implementation.
 7. If review has actionable findings, call `planner` with the review output, then call `implementer`, then call `reviewer` again.
+8. After a clean review, inspect `git status --short` and ask the user whether they want to commit the task-owned changes.
 
 ## Review Loop
 
@@ -58,6 +59,15 @@ Use this flow for approved code changes unless the task is clearly simpler:
 - Stop when review is clean, the user stops the work, or two remediation cycles have run.
 - Do not hide failed reviews. If the loop stops with remaining findings, report them clearly.
 - Treat non-actionable review comments as residual risk, not automatic remediation work.
+
+## Commit Checkpoint
+
+- Only present the normal commit prompt after the review loop ends cleanly, including cases with only non-actionable residual risk.
+- Before prompting, inspect `git status --short` and distinguish task-owned changes from unrelated, pre-existing, or user-owned changes.
+- In the prompt, summarize the scoped files intended for staging and provide a suggested commit message.
+- Do not stage or commit anything until the user explicitly approves.
+- If approved, use a write-capable execution context to stage only the scoped task files and run `git commit`. Leave unrelated files unstaged unless the user explicitly includes them.
+- If actionable review findings remain, verification is blocked, or the implementation is partial, do not present the normal ready-to-commit prompt. Report why the work is not ready and list the remaining findings or blockers.
 
 ## Handoff Format
 
@@ -89,3 +99,4 @@ Summarize:
 - verification performed;
 - review result;
 - unresolved risks or blocked items.
+- commit checkpoint, including scoped files and suggested commit message when the reviewed work is ready.
