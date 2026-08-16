@@ -64,9 +64,10 @@ Use this flow for approved code changes unless the task is clearly simpler:
 
 - Only present the normal commit prompt after the review loop ends cleanly, including cases with only non-actionable residual risk.
 - Before prompting, inspect `git status --short` and distinguish task-owned changes from unrelated, pre-existing, or user-owned changes.
-- In the prompt, summarize the scoped files intended for staging and provide a suggested commit message.
+- In the prompt, summarize the scoped files intended for staging and provide a suggested Conventional Commits message using `type: summary` or `type(scope): summary`.
+- Choose the commit type from the primary change: `feat` for user-facing capability, `fix` for bug fixes, `docs` for documentation-only changes, `test` for tests, `refactor` for behavior-preserving code changes, and `chore` for tooling or framework maintenance.
 - Do not stage or commit anything until the user explicitly approves.
-- If approved, use a write-capable execution context to stage only the scoped task files and run `git commit`. Leave unrelated files unstaged unless the user explicitly includes them.
+- If approved, use a write-capable execution context to stage only the scoped task files and run `git commit` with the exact approved prefixed message. Leave unrelated files unstaged unless the user explicitly includes them.
 - If actionable review findings remain, verification is blocked, or the implementation is partial, do not present the normal ready-to-commit prompt. Report why the work is not ready and list the remaining findings or blockers.
 
 ## Handoff Format
@@ -99,4 +100,4 @@ Summarize:
 - verification performed;
 - review result;
 - unresolved risks or blocked items.
-- commit checkpoint, including scoped files and suggested commit message when the reviewed work is ready.
+- commit checkpoint, including scoped files and suggested Conventional Commits message when the reviewed work is ready.

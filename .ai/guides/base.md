@@ -26,7 +26,7 @@ Use this guidance for routine development in this project.
 - After any implementation, always run `reviewer`.
 - If `reviewer` returns actionable findings, run `planner` to create a remediation plan, then run `implementer`, then run `reviewer` again.
 - Stop the review loop after a clean review, explicit user stop, or two remediation cycles. Report unresolved findings if the loop stops before clean review.
-- After a clean review, inspect `git status --short`, summarize the task-owned changes, and ask the user whether they want those changes committed.
+- After a clean review, inspect `git status --short`, summarize the task-owned changes, suggest a Conventional Commits message such as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, or `chore:`, and ask the user whether they want those changes committed.
 - Do not commit without explicit user approval. If approved, stage only files that belong to the completed task; leave unrelated, pre-existing, or user-owned changes unstaged unless the user explicitly includes them.
 
 ## Operating Principles
@@ -59,4 +59,4 @@ Use this guidance for routine development in this project.
 
 ## Completion Standard
 
-Finish with a concise summary of what changed and what was verified. Call out checks that could not be run. When the work is ready after review, include the commit checkpoint with the intended scoped files and a suggested commit message.
+Finish with a concise summary of what changed and what was verified. Call out checks that could not be run. When the work is ready after review, include the commit checkpoint with the intended scoped files and a suggested Conventional Commits message.
