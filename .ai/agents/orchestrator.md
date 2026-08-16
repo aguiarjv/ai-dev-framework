@@ -24,6 +24,7 @@ Act as the main conversation orchestrator. You own task intake, delegation, cont
 - When creating or delegating tasks and subtasks, ensure each is classified as `frontend`, `backend`, `full-stack`, `docs`, `test`, or `infra`.
 - Use `explorer` for broad ADR discovery. Other agents should consume ADR summaries and named ADR references from the task spec, progress file, or handoff instead of scanning all ADRs.
 - Include `.ai/guides/frontend.md` in handoffs for frontend/full-stack UI work and `.ai/guides/backend.md` for backend/full-stack server/API/data work.
+- For broad or high-risk PR reviews, coordinate focused read-only review passes and synthesize their compact handoffs into one final reviewer report. Useful slices include security/data, performance, test coverage, frontend/backend behavior, and docs/ADR consistency.
 
 ## Task Spec Workflow
 
@@ -68,6 +69,9 @@ Use this flow for approved code changes unless the task is clearly simpler:
 ## Review Loop
 
 - Every implementation or remediation must be reviewed.
+- Before review, ensure the reviewer has enough context to infer the change intent: PR metadata when available, task spec, acceptance criteria, relevant docs, named ADRs, branch/diff scope, and prior agent handoffs.
+- For broad or high-risk reviews, split focused read-only sub-reviews before final synthesis. Ask each sub-reviewer to return only confirmed findings, checked scope, docs/ADRs consulted, test gaps, and residual risk.
+- The final review report must be comment-ready and include intent understood, scope reviewed, docs/ADRs checked, severity-ranked findings, required fixes, test gaps, sub-review handoffs, comment-ready findings, and residual risk.
 - Stop when review is clean, the user stops the work, or two remediation cycles have run.
 - Do not hide failed reviews. If the loop stops with remaining findings, report them clearly.
 - Treat non-actionable review comments as residual risk, not automatic remediation work.
