@@ -4,6 +4,8 @@
 
 Put authored reusable assets under `.ai/`. Treat tool-specific files as generated adapters.
 
+Keep `.ai/agent-capabilities.md` current when adding agents or skills. It defines routing conditions and the minimum context/output contract for each role.
+
 ## Guidance
 
 Put reusable project-wide behavior in `.ai/guides`. Keep guidance stable and broadly applicable. Avoid project-specific commands, service names, and credentials.
@@ -47,6 +49,9 @@ Portable skills should not embed project-specific validation commands. For brows
 Put reusable workflow templates in `.ai/templates`. The core pack installs:
 
 - `task-spec.md` for approved task documents in `docs/tasks/`, including the implementation plan, relevant ADR references, and classified task breakdown.
+- `task-contract.json` for the machine-readable task graph, acceptance criteria, dependencies, worktree state, risk, and review policy.
+- `workflow-state.json` for phase, status, active subtask, review-cycle, blocker, and transition evidence.
+- `handoff.md`, `agent-result.md`, and `review-finding.md` for durable delegation, result, and review contracts.
 - `local-progress.md` for ignored progress state and agent handoffs in `.local/tasks/`.
 - `adr.md` for durable decisions and implementation records in `docs/adr/`.
 - `harness-registry.md`, `harness-entry.md`, and `harness-script.sh` for validation harness creation.

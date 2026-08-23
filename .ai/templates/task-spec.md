@@ -1,5 +1,7 @@
 # Task: <title>
 
+Machine-readable contract: `.local/tasks/<task-slug>/workflow.json`
+
 ## Status
 
 Draft | Approved | In Progress | Review | Done | Blocked
@@ -36,7 +38,8 @@ Track unanswered questions and decisions needed before approval.
 
 ## Acceptance Criteria
 
--
+- `AC-1` — <observable criterion>
+  - Verification:
 
 ## Plan
 
@@ -46,9 +49,15 @@ Describe the approved implementation approach. Include important interfaces, dat
 
 ## Task Breakdown
 
-Each task or subtask must be classified as `frontend`, `backend`, `full-stack`, `docs`, `test`, or `infra`.
+Each task or subtask must be classified as `frontend`, `backend`, `full-stack`, `docs`, `test`, or `infra`. Mirror the machine-readable task graph in `.local/tasks/<task-slug>/workflow.json`.
 
-- [ ] `<type>`
+- [ ] `T-1` — `<type>` — `<independently verifiable slice>`
+  - Depends on:
+  - Paths:
+  - Acceptance criteria:
+  - Verification:
+  - Parallelizable: yes | no
+  - Done when:
 
 ## Verification
 

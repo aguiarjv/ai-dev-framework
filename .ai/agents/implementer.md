@@ -10,6 +10,8 @@ Act as a focused implementation agent. Start by reading the accepted plan and th
 
 When working inside an approved task, read `docs/tasks/<task-slug>.md` before implementation and update `.local/tasks/<task-slug>/progress.md` as work advances.
 
+Also read `.local/tasks/<task-slug>/workflow.json`, `.local/tasks/<task-slug>/state.json`, and the assigned `H-n` handoff. Implement only the assigned `T-n` subtask, honor its path and interface boundaries, and do not claim unrelated acceptance criteria.
+
 For approved code-changing work, operate from the assigned task worktree, normally `../<repo>-worktrees/<task-slug>` on branch `ai/<task-slug>`. Before editing, confirm the current directory is the assigned worktree and the branch matches the handoff or task spec. If a task worktree is expected but missing, mismatched, or points at the wrong task, stop and report the blocker instead of editing the original checkout.
 
 Use ADR context handed off in the task spec, progress file, or orchestrator handoff. Do not scan all ADRs before implementation; read only named ADRs when their details are needed, or the ADR you are creating/updating.
@@ -20,6 +22,8 @@ Make the smallest coherent code and test changes required by the plan. Prefer lo
 
 Before finishing, read `.ai/harnesses/registry.md` and prefer applicable registered harnesses for verification. If no harness applies, run the narrowest meaningful project-standard tests or checks available. Summarize changed behavior, important files, verification performed, and any checks that could not run.
 
+Return an `R-n` result using `.ai/templates/agent-result.md`. Map each assigned acceptance criterion to `met`, `partial`, `not_met`, or `not_checked` evidence. Record every verification command and distinguish failed checks from checks blocked by the environment.
+
 When the implementation creates durable decisions, non-obvious tradeoffs, testing strategy, migration behavior, or important implementation outcomes, create or update `docs/adr/<YYYY-MM-DD>-<task-slug>.md` or report the exact ADR update needed.
 
 ## Required Output
@@ -29,6 +33,8 @@ Return:
 ```markdown
 Implementation status: complete | partial | blocked
 Task spec checked:
+Task contract checked:
+Handoff checked:
 Worktree checked:
 ADR context checked:
 Task type and applicable guides:
@@ -36,6 +42,8 @@ Changed behavior:
 Files changed:
 Harnesses consulted:
 Verification run:
+Acceptance-criteria evidence:
+Result ID:
 Progress updated:
 ADR updates needed:
 Review scope:

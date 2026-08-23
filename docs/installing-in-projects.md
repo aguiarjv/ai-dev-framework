@@ -12,6 +12,7 @@ The core pack writes:
 
 - `.ai/guides/*`
 - `.ai/agents/*`
+- `.ai/agent-capabilities.md`
 - `.ai/templates/*`
 - `.ai/harnesses/registry.md`
 - `.ai/harnesses/scripts/`
@@ -40,7 +41,7 @@ Generated adapters include a source marker such as `Generated from .ai/...`. Som
 
 ## Task Workflow
 
-For new implementation tasks, the orchestrator creates `docs/tasks/<task-slug>.md` from `.ai/templates/task-spec.md` and waits for explicit approval before implementation. For non-trivial or unclear tasks, it first calls `explorer` to map relevant code, tests, configs, commands, conventions, risks, and relevant ADRs. The task spec must include repository context, relevant ADR references, acceptance criteria, a concise implementation plan, and classified tasks or subtasks before approval. Current progress, exploration findings, ADR summaries, and agent handoffs live under `.local/tasks/<task-slug>/progress.md`, which is ignored by git. Durable decisions and relevant implementation context belong in `docs/adr/`. Broad ADR discovery belongs to `explorer`; downstream agents use handed-off summaries or named ADR paths instead of scanning every ADR.
+For new implementation tasks, the orchestrator creates `docs/tasks/<task-slug>.md`, `.local/tasks/<task-slug>/workflow.json`, and `.local/tasks/<task-slug>/state.json` from the task templates, then waits for explicit approval before implementation. For non-trivial or unclear tasks, it first calls `explorer` to map relevant code, tests, configs, commands, conventions, risks, and relevant ADRs. The task spec must include repository context, relevant ADR references, acceptance criteria, a concise implementation plan, and a dependency-aware classified task graph before approval. Current progress, exploration findings, ADR summaries, and agent handoffs live under `.local/tasks/<task-slug>/progress.md`, which is ignored by git. Durable decisions and relevant implementation context belong in `docs/adr/`. Broad ADR discovery belongs to `explorer`; downstream agents use handed-off summaries or named ADR paths instead of scanning every ADR.
 
 After implementation, the orchestrator runs the reviewer and resolves actionable findings through the normal review loop. When the review is clean, it checks `git status --short`, summarizes the task-owned files, suggests a Conventional Commits message such as `feat:`, `fix:`, or `docs:`, and asks the user whether to commit those scoped changes. It must not commit without explicit approval or stage unrelated, pre-existing, or user-owned changes unless the user explicitly includes them.
 

@@ -14,9 +14,11 @@ description: Perform rigorous code review of diffs, branches, pull requests, or 
    - For standalone PR reviews, inspect nearby docs and do targeted ADR discovery from changed paths, component names, domains, schemas, APIs, migrations, or config names. Do not deep-read every ADR by default.
    - Read nearby implementation, tests, schemas, configs, routes, public interfaces, and harness registry entries affected by the change.
 4. Review the change against intent and surrounding contracts. Look for incorrect behavior, broken contracts, missed edge cases, security/privacy issues, auth/authorization gaps, data loss, migrations, concurrency, performance, and meaningful missing tests.
-5. For broad or high-risk reviews, ask the orchestrator to split focused read-only sub-reviews and synthesize their compact handoffs. Useful review slices include security/data, performance, test coverage, frontend/backend behavior, and docs/ADR consistency.
-6. Prioritize confirmed findings. Avoid style-only comments unless they affect correctness, safety, compatibility, or maintainability.
-7. Produce a comment-ready report with findings first, ordered by severity, with file and line references.
+5. Build an acceptance-criteria coverage matrix and require implementation plus verification evidence for every `AC-n` criterion.
+6. For broad or high-risk reviews, ask the orchestrator to split focused read-only sub-reviews and synthesize their compact handoffs. Useful review slices include security/data, performance, test coverage, frontend/backend behavior, and docs/ADR consistency.
+7. Give each finding an `F-n` ID, severity, confidence, criterion IDs, evidence, required fix, and verification step. Preserve IDs during remediation.
+8. Prioritize confirmed findings. Avoid style-only comments unless they affect correctness, safety, compatibility, or maintainability.
+9. Produce a comment-ready report with findings first, ordered by severity, with file and line references.
 
 ## Output
 
@@ -26,6 +28,7 @@ Use this shape:
 Review status: clean | actionable-findings | blocked
 Intent understood:
 Scope reviewed:
+Acceptance coverage:
 Docs and ADRs checked:
 Findings:
 - Severity - path:line - issue, impact, and concrete fix.

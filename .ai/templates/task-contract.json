@@ -1,0 +1,49 @@
+{
+  "schema_version": "1",
+  "task_id": "<task-slug>",
+  "title": "<task title>",
+  "status": "draft",
+  "task_type": "backend",
+  "objective": "<user-visible outcome>",
+  "scope": {
+    "in": ["<included behavior or subsystem>"],
+    "out": ["<explicitly excluded behavior>"]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "statement": "<observable success criterion>",
+      "verification": ["<command, harness, or inspection>" ]
+    }
+  ],
+  "subtasks": [
+    {
+      "id": "T-1",
+      "title": "<independently verifiable slice>",
+      "task_type": "backend",
+      "owner": "implementer",
+      "status": "pending",
+      "depends_on": [],
+      "paths": ["<path or glob>"],
+      "acceptance_criteria": ["AC-1"],
+      "verification": ["<focused verification command>"],
+      "parallelizable": false,
+      "done_when": "<specific completion condition>"
+    }
+  ],
+  "worktree": {
+    "path": null,
+    "branch": null,
+    "base_revision": null
+  },
+  "context_refs": [],
+  "risk": {
+    "level": "medium",
+    "areas": []
+  },
+  "review_policy": {
+    "required": true,
+    "max_remediation_cycles": 2,
+    "slices": []
+  }
+}

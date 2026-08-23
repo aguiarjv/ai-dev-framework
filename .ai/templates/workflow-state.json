@@ -1,0 +1,18 @@
+{
+  "schema_version": "1",
+  "task_id": "<task-slug>",
+  "phase": "intake",
+  "status": "pending",
+  "active_subtask": null,
+  "review_cycles": 0,
+  "blockers": [],
+  "history": [
+    {
+      "phase": "intake",
+      "status": "pending",
+      "at": "<ISO-8601 timestamp>",
+      "actor": "orchestrator",
+      "evidence": ["<user request or task artifact>"]
+    }
+  ]
+}

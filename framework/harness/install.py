@@ -65,6 +65,10 @@ def build_actions(root: Path, pack: dict) -> list[tuple[Path, bytes]]:
     actions.append((Path(".ai") / "guides" / guide_path.name, guide_text.encode("utf-8")))
     actions.append((Path("AGENTS.md"), render_codex_guide(pack["guide"], guide_text).encode("utf-8")))
 
+    capability_registry = root / ".ai" / "agent-capabilities.md"
+    if capability_registry.exists():
+        actions.append((Path(".ai") / capability_registry.name, capability_registry.read_bytes()))
+
     for guide in pack.get("guides", []):
         supplemental = root / ".ai" / "guides" / f"{guide}.md"
         actions.append((Path(".ai") / "guides" / supplemental.name, supplemental.read_bytes()))
@@ -93,12 +97,12 @@ def build_actions(root: Path, pack: dict) -> list[tuple[Path, bytes]]:
             actions.append((Path(".ai") / "harnesses" / "registry.md", source.read_bytes()))
             continue
         source = root / ".ai" / "harnesses" / harness
-        for file_path in sorted(path for path in source.rglob("*") if path.is_file()):
+        for file_path in source_files(source):
             relative = file_path.relative_to(root / ".ai")
             actions.append((Path(".ai") / relative, file_path.read_bytes()))
 
     harness_scripts = root / ".ai" / "harnesses" / "scripts"
-    for file_path in sorted(path for path in harness_scripts.rglob("*") if path.is_file()):
+    for file_path in source_files(harness_scripts):
         relative = file_path.relative_to(root / ".ai")
         action = (Path(".ai") / relative, file_path.read_bytes())
         if action not in actions:
@@ -106,7 +110,7 @@ def build_actions(root: Path, pack: dict) -> list[tuple[Path, bytes]]:
 
     for skill in pack["skills"]:
         source = root / ".ai" / "skills" / skill
-        for file_path in sorted(path for path in source.rglob("*") if path.is_file()):
+        for file_path in source_files(source):
             relative = file_path.relative_to(root / ".ai")
             content = file_path.read_bytes()
             actions.append((Path(".ai") / relative, content))
@@ -120,11 +124,22 @@ def build_actions(root: Path, pack: dict) -> list[tuple[Path, bytes]]:
 
 
 def template_path(root: Path, template: str) -> Path:
-    for suffix in [".md", ".sh"]:
+    for suffix in [".md", ".sh", ".json"]:
         source = root / ".ai" / "templates" / f"{template}{suffix}"
         if source.exists():
             return source
     raise FileNotFoundError(f"Template not found: {template}")
+
+
+def source_files(directory: Path) -> list[Path]:
+    """Return installable source files without local interpreter caches."""
+    return sorted(
+        path
+        for path in directory.rglob("*")
+        if path.is_file()
+        and "__pycache__" not in path.parts
+        and path.suffix != ".pyc"
+    )
 
 
 def ensure_project_state(target: Path, dry_run: bool) -> list[str]:
@@ -199,12 +214,19 @@ def render_claude_guide(source_name: str) -> str:
 
 
 def render_codex_agent(meta: dict[str, str], body: str) -> str:
+    portable_contract = "\n".join(
+        [
+            "Portable agent contract:",
+            f"- tools: {meta.get('tools', 'unspecified')}",
+            f"- permission_mode: {meta.get('permission_mode', 'unspecified')}",
+        ]
+    )
     return "\n".join(
         [
             f"# Generated from .ai/agents/{meta['name']}.md. Edit the .ai source, then reinstall.",
             f"name = {toml_quote(meta['name'])}",
             f"description = {toml_quote(meta['description'])}",
-            f"developer_instructions = {toml_multiline(body)}",
+            f"developer_instructions = {toml_multiline(portable_contract + chr(10) + chr(10) + body)}",
             "",
         ]
     )

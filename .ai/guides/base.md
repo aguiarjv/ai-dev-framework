@@ -7,14 +7,17 @@ Use this guidance for routine development in this project.
 - Treat the main chat as the `orchestrator` for new tasks.
 - The orchestrator may answer simple questions directly, but should delegate non-trivial repository work to specialist agents.
 - For new development tasks, clarify intent first, then create or update `docs/tasks/<task-slug>.md` before implementation.
+- Create `.local/tasks/<task-slug>/workflow.json` and `.local/tasks/<task-slug>/state.json` from the task-contract and workflow-state templates, and keep them synchronized with the task spec.
 - For non-trivial or unclear implementation tasks, call `explorer` before finalizing the task spec to map relevant code, tests, configs, commands, conventions, risks, and relevant ADRs.
 - Before approval, the task spec must include repository context, acceptance criteria, a concise implementation plan, and classified tasks or subtasks.
+- Every acceptance criterion must have an `AC-n` ID. Every subtask must have a `T-n` ID, owner, dependency list, scope, acceptance-criteria mapping, verification, parallelization decision, and `done_when` condition.
 - Do not begin implementation, run formatters, or make code changes until the task spec is explicitly approved by the user.
 - After approval and before code-changing implementation, remediation, or debugging, create or reuse a dedicated git worktree for the task.
 - Use `../<repo>-worktrees/<task-slug>` as the default worktree path and `ai/<task-slug>` as the default branch.
 - If the task branch or worktree already exists, inspect it and reuse it only when it matches the active task; report conflicts instead of overwriting or deleting existing worktrees.
 - Record the task worktree path and branch in `docs/tasks/<task-slug>.md`, `.local/tasks/<task-slug>/progress.md`, and implementation, review, and debugging handoffs.
 - Keep current task progress in `.local/tasks/<task-slug>/progress.md`; `.local/` must remain gitignored.
+- Record `H-n` handoffs and `R-n` agent results with confirmed evidence, assumptions, verification status, blockers, and next actions.
 - Record exploration findings and handoffs in `.local/tasks/<task-slug>/progress.md` as working state.
 - Add durable decisions and important implementation context to `docs/adr/<YYYY-MM-DD>-<task-slug>.md`.
 - Only `explorer` should perform broad ADR discovery. Other agents should use ADR summaries and named ADR references from the task spec, progress file, or handoff, and should not scan all ADRs as routine context.
@@ -29,6 +32,7 @@ Use this guidance for routine development in this project.
 - Use compact handoffs that include only the goal, relevant paths, constraints, prior conclusions, acceptance criteria, and required output.
 - Implementation, review, and debugging agents must operate from the assigned task worktree when one is expected.
 - After any implementation, always run `reviewer`.
+- Reviewers must produce an acceptance-criteria coverage matrix and stable `F-n` finding records; unverified criteria and open critical/high findings block completion.
 - If `reviewer` returns actionable findings, run `planner` to create a remediation plan, then run `implementer`, then run `reviewer` again.
 - Stop the review loop after a clean review, explicit user stop, or two remediation cycles. Report unresolved findings if the loop stops before clean review.
 - After a clean review, inspect `git status --short` from the task worktree, summarize the task-owned changes, suggest a Conventional Commits message such as `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, or `chore:`, and ask the user whether they want those changes committed.

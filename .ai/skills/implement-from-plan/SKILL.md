@@ -8,11 +8,12 @@ description: Execute an accepted implementation plan in a codebase with discipli
 ## Workflow
 
 1. Read the plan and identify required behavior, files, tests, and constraints.
-2. Inspect the current repository state before editing. Treat existing uncommitted changes as user work unless proven otherwise.
-3. Make changes in the smallest coherent sequence. Prefer existing local patterns and helper APIs.
-4. Add or update tests when behavior, contracts, or regressions are involved.
-5. Run focused verification first. Run broader checks when shared behavior or public interfaces changed.
-6. Summarize changed behavior, files touched, verification run, and any remaining risk.
+2. Read the task contract and assigned handoff. Confirm the current subtask is ready and its dependencies are complete.
+3. Inspect the current repository state before editing. Treat existing uncommitted changes as user work unless proven otherwise.
+4. Make changes in the smallest coherent sequence. Prefer existing local patterns and helper APIs.
+5. Add or update tests when behavior, contracts, or regressions are involved.
+6. Run focused verification first. Run broader checks when shared behavior or public interfaces changed.
+7. Return an `R-n` result mapping acceptance criteria to evidence and distinguishing failed, blocked, and unrun checks.
 
 ## Guardrails
 

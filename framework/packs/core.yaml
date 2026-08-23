@@ -10,6 +10,11 @@ adapters:
   - claude
 templates:
   - task-spec
+  - task-contract
+  - workflow-state
+  - handoff
+  - agent-result
+  - review-finding
   - local-progress
   - adr
   - harness-registry
@@ -36,3 +41,5 @@ skills:
   - release-readiness
   - create-harness
   - todo-list
+  - task-decomposition
+  - workflow-handoff

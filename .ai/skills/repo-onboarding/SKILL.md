@@ -12,7 +12,8 @@ description: Map an unfamiliar repository or subsystem before implementation, re
 3. Find entrypoints, core modules, tests, generated files, and local conventions.
 4. Map likely commands for install, build, test, lint, format, and dev server.
 5. Note risks: missing tests, unclear generated outputs, migrations, deployment configs, or unusual permissions.
-6. Produce concise operating notes with concrete paths and commands.
+6. Record confirmed facts with path or command evidence and keep assumptions separate.
+7. Produce concise operating notes with concrete paths and commands suitable for an `H-n` handoff.
 
 ## Output
 

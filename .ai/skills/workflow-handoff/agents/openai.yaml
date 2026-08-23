@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Handoff"
+  short_description: "Preserve context between agents."
+  default_prompt: "Use $workflow-handoff to create or validate an evidence-backed delegation handoff or agent result."

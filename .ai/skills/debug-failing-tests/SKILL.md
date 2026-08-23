@@ -19,7 +19,7 @@ description: Diagnose failing tests, builds, CI failures, flaky behavior, or run
 For long logs, run:
 
 ```bash
-python3 framework/skills/debug-failing-tests/scripts/summarize-test-log.py path/to/log.txt
+python3 .ai/skills/debug-failing-tests/scripts/summarize-test-log.py path/to/log.txt
 ```
 
 Use the summary to navigate; still inspect source files before changing behavior.
