@@ -1,4 +1,0 @@
-interface:
-  display_name: "Playwright Visual Review"
-  short_description: "Run browser visual QA workflows."
-  default_prompt: "Use $playwright-visual-review to run or create a registered browser visual review workflow."

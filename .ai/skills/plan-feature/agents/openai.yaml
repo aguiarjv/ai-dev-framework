@@ -1,4 +1,0 @@
-interface:
-  display_name: "Plan Feature"
-  short_description: "Turn feature ideas into concrete plans."
-  default_prompt: "Use this skill to turn a rough feature request into a decision-complete implementation plan."

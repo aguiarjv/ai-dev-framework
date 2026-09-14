@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review PR"
-  short_description: "Review PRs with intent, docs, ADRs, and risks."
-  default_prompt: "Use this skill to review a PR, branch, or diff for intent fit, bugs, security and performance risks, docs/ADR drift, edge cases, and missing tests."

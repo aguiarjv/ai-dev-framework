@@ -1,4 +1,0 @@
-interface:
-  display_name: "Task Decomposition"
-  short_description: "Build dependency-aware task graphs."
-  default_prompt: "Use $task-decomposition to break an approved goal into scoped, verifiable subtasks with dependencies and safe parallelization decisions."

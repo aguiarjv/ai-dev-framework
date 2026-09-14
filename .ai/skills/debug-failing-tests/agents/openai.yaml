@@ -1,4 +1,0 @@
-interface:
-  display_name: "Debug Failing Tests"
-  short_description: "Diagnose failing tests and builds."
-  default_prompt: "Use this skill to triage failing tests, builds, logs, or CI failures and identify the smallest reliable fix."

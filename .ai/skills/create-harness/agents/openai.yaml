@@ -1,4 +1,0 @@
-interface:
-  display_name: "Create Harness"
-  short_description: "Create and register validation harnesses."
-  default_prompt: "Use this skill to create a project validation harness script, validate it, and register it for reviewer/tester agents."
