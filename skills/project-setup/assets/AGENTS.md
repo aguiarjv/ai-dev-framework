@@ -20,9 +20,12 @@ as the orchestrator.
   assigning or changing repository work.
 - Keep plans, handoffs, reviews, reports, project documentation, and workspace
   helper scripts in this managed project, not inside another project.
-- Use a separate worktree and branch for every active implementation task.
+- Use an orchestrator-owned plan integration worktree and a separate worktree
+  and branch for every active implementation task.
 - Treat task `PROGRESS.md` as the task-state source of truth and plan
   `PROGRESS.md` as the orchestrator-owned summary.
 - Do not guess missing product, scope, architecture, or integration decisions.
-- Do not merge, rebase, push, remove a worktree, or delete a branch unless the
-  user or an applicable repository policy authorizes it.
+- An approved plan authorizes only its recorded task-to-plan integrations. Do
+  not deliver the plan branch, otherwise merge or rebase, push, remove a
+  worktree, or delete a branch unless the user or an applicable repository
+  policy authorizes it.

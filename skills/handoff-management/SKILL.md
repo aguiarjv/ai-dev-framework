@@ -13,7 +13,8 @@ start new handoffs from `assets/HANDOFF.md`.
 1. Identify the plan, optional task, sender role, recipient role, and transition
    being recorded.
 2. Choose the applicable directory:
-   - Plan-level: `plans/<plan-id>/handoffs/`.
+   - Plan-level exploration, coordination, or integration review:
+     `plans/<plan-id>/handoffs/`.
    - Task-level: `plans/<plan-id>/tasks/<task-id>/handoffs/`.
 3. Assign the next unused three-digit sequence in that directory and use
    `<sequence>-<from-role>-to-<to-role>.md` as the filename.

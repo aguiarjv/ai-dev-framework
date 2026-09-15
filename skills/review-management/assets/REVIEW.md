@@ -3,13 +3,14 @@ id: "<review-id>"
 title: "<review-title>"
 created: "<YYYY-MM-DDTHH:MM:SSZ>"
 plan: "<plan-id>"
-task: "<task-id>"
-review_kind: "<checkpoint|final>"
+task: <task-id-or-null>
+review_kind: "<checkpoint|task-final|plan-integration>"
 attempt: "<NNN>"
 status: "<clean|actionable-findings|blocked>"
 worktree: "worktrees/<worktree-folder>"
 branch: "<branch-name>"
 head_commit: "<full-commit-sha>"
+uncommitted_changes: <true|false>
 comparison_base: "<base-ref-or-commit>"
 ---
 
@@ -21,7 +22,7 @@ comparison_base: "<base-ref-or-commit>"
 
 ## Inputs
 
-- Task: `<plan-relative-task-path>`
+- Definition: `<plan-relative-plan-or-task-path>`
 - Handoff: `<plan-relative-handoff-path>`
 - Documentation and guides: <paths or `None`>
 

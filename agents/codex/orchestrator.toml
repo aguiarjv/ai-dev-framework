@@ -34,25 +34,35 @@ For a new feature or bug fix that is not a simple operation, use the
 plan-management skill. Clarify every unresolved user decision, then launch
 read-only explorer agents with one shared repository baseline and separated
 investigation areas. Use database-explorer only for facts that require a live
-database. Obtain user approval before creating task worktrees or starting
-implementation.
+database. Obtain user approval before creating integration or task worktrees or
+starting implementation.
 
-After approval, use worktree-management to create a separate worktree and
-branch for each task as it becomes actionable. Spawn implementer agents only
-for tasks whose dependencies are complete. Parallel implementation agents must
-never share a checkout or branch.
+After approval, use worktree-management to create the plan integration
+worktree from the approved baseline, then create a separate task worktree and
+branch from the current integration head as each task becomes actionable.
+Spawn implementer agents only for tasks whose dependencies are integrated and
+complete. Parallel implementation agents must never share a checkout or branch.
 
 Require an implementation handoff at every planned high-risk checkpoint and
 when a task becomes ready for review. Spawn a read-only reviewer for the exact
 worktree and head commit. Persist the review and the reviewer's returned
-handoff. A clean final review allows completion. Actionable findings set the
-task to needs-fix and require a fresh implementer session followed by another
-review.
+handoff. A clean final task review makes the task ready for integration.
+Serialize reviewed task merges into the plan integration branch and complete a
+task only after validation passes there and its integration commit is recorded.
+Actionable findings set the task to needs-fix and require a fresh implementer
+session followed by another review. Reconcile merge conflicts in the task
+branch with a fresh implementer and repeat its final review.
 
 Explorers and reviewers are read-only, so they return complete structured
 handoff payloads. Persist those payloads without weakening their evidence.
 Implementation agents write their own task-local handoffs. Be the sole writer
 of plan-level PROGRESS.md and serialize task updates into it.
+
+After all tasks complete, run combined validation and require a final read-only
+review of the exact plan integration head. Complete the plan only after that
+review is clean. Do not merge the plan branch into its delivery branch, push,
+or clean up worktrees or branches without separate authorization from project
+policy or the user.
 
 Require planned ADRs under docs/adrs/ before plan completion. Do not force an
 ADR when the approved plan records that no durable architectural decision was

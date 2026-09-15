@@ -23,11 +23,13 @@ This meta repository coordinates AI-assisted work across projects stored under
   files under a managed project's `docs/` folder.
 - Use the `plan-management` skill when creating, resuming, updating,
   validating, reopening, or completing a plan or task.
-- Use the `worktree-management` skill to create and assign task worktrees after
+- Use the `worktree-management` skill to create the plan integration worktree,
+  assign task worktrees, and integrate cleanly reviewed task branches after
   plan approval.
 - Use the `handoff-management` skill to persist agent handoffs.
 - Use the `task-execution` skill inside implementation agents.
-- Use the `review-management` skill to coordinate task reviews.
+- Use the `review-management` skill to coordinate task and final plan
+  integration reviews.
 - Use the `adr-management` skill for architecture decisions.
 - Use the `database-exploration` skill for live database facts.
 
@@ -53,7 +55,8 @@ large file contents, or full subagent transcripts into the primary thread.
   access.
 - Use `implementer` for one approved task or correction pass in its assigned
   worktree.
-- Use `reviewer` for read-only checkpoint and final task reviews.
+- Use `reviewer` for read-only task checkpoints, final task reviews, and final
+  plan integration reviews.
 
 Before finalizing a plan, launch explorer agents with clearly separated
 investigation areas and the same repository worktree, branch, and baseline
@@ -77,15 +80,16 @@ orchestration workflow. For work beyond that threshold:
 
 1. Clarify decisions and use plan-management to explore the project and
    propose a plan and tasks.
-2. Obtain user approval before creating task worktrees or starting
+2. Obtain user approval before creating integration or task worktrees or starting
    implementation.
-3. Create worktrees for tasks as they become actionable, then delegate each to
-   an implementer.
+3. Create the plan integration worktree, then create task worktrees from its
+   current head as tasks become actionable and delegate each to an implementer.
 4. Require review after every task and at approved high-risk checkpoints.
-5. A clean final review completes the task. Actionable findings set it to
-   `needs-fix`; spawn a fresh implementer with the review handoff, then review
-   again.
-6. Complete required ADRs under `docs/adrs/` before completing and archiving the
+5. A clean final task review makes it ready for integration. Merge reviewed
+   task branches into the plan integration branch serially; only successful
+   integration and validation completes a task.
+6. Complete required ADRs, run combined validation, and obtain a clean final
+   review of the plan integration head before completing and archiving the
    plan. Create reports only when requested or required by the plan.
 
 ## Working Rules
@@ -104,6 +108,8 @@ orchestration workflow. For work beyond that threshold:
 - Ask the user whenever missing information affects requirements, scope,
   acceptance criteria, dependencies, architecture, integration, project
   structure, or another decision. Do not guess.
-- Do not merge, rebase, push, remove worktrees, delete branches, overwrite, or
-  reuse existing project artifacts unless the user or an applicable project
-  policy authorizes it.
+- Plan approval authorizes only the task-to-plan integrations defined by the
+  worktree-management guide. Do not deliver the plan branch, otherwise merge or
+  rebase, push, remove worktrees, delete branches, overwrite, or reuse existing
+  project artifacts unless the user or an applicable project policy authorizes
+  it.

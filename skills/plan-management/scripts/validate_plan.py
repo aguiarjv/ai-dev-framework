@@ -15,7 +15,11 @@ from typing import Any
 
 
 PLAN_STATUSES = {"not-started", "in-progress", "blocked", "completed"}
-TASK_STATUSES = PLAN_STATUSES | {"ready-for-review", "needs-fix"}
+TASK_STATUSES = PLAN_STATUSES | {
+    "ready-for-review",
+    "ready-for-integration",
+    "needs-fix",
+}
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 COMMIT_PATTERN = re.compile(r"^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$")
@@ -27,6 +31,7 @@ PLAN_SECTIONS = {
     "Context",
     "Scope",
     "Approach",
+    "Integration",
     "Dependencies",
     "Related Files and Folders",
     "Relevant Documentation and Guides",
@@ -35,7 +40,13 @@ PLAN_SECTIONS = {
     "Tasks",
     "Completion Criteria",
 }
-PLAN_PROGRESS_SECTIONS = {"Summary", "Task Status", "Blockers", "Next Actions"}
+PLAN_PROGRESS_SECTIONS = {
+    "Summary",
+    "Integration",
+    "Task Status",
+    "Blockers",
+    "Next Actions",
+}
 TASK_SECTIONS = {
     "Objective",
     "Requirements",
@@ -354,6 +365,19 @@ class PlanValidator:
         normalized = cls.meaningful_text(value).lower()
         return bool(normalized) and normalized not in NONE_VALUES
 
+    def labeled_list_value(
+        self,
+        document: MarkdownDocument,
+        section: str,
+        label: str,
+    ) -> str:
+        match = re.search(
+            rf"^\s*[-*]\s+{re.escape(label)}:\s*(.+?)\s*$",
+            self.section_body(document, section),
+            re.MULTILINE | re.IGNORECASE,
+        )
+        return self.plain_cell(match.group(1)) if match else ""
+
     def checklist_states(
         self, document: MarkdownDocument, section: str
     ) -> list[bool]:
@@ -449,18 +473,17 @@ class PlanValidator:
         ):
             self.error(document.path, f"{key} must be a full Git commit SHA or null")
 
-    def validate_review_result(
+    def read_review(
         self,
         progress: MarkdownDocument,
-        expected_status: str,
-    ) -> None:
+    ) -> MarkdownDocument | None:
         value = progress.frontmatter.get("latest_review")
         if not isinstance(value, str):
-            return
+            return None
 
         project_root = self.managed_project_root()
         if project_root is None:
-            return
+            return None
 
         parts = value.split("/")
         if (
@@ -471,12 +494,18 @@ class PlanValidator:
             or PurePosixPath(value).is_absolute()
             or not value.endswith(".md")
         ):
-            return
+            return None
 
-        review_path = project_root.joinpath(*parts)
-        review = self.read_document(review_path)
+        return self.read_document(project_root.joinpath(*parts))
+
+    def validate_review_result(
+        self,
+        progress: MarkdownDocument,
+        expected_status: str,
+    ) -> MarkdownDocument | None:
+        review = self.read_review(progress)
         if review is None:
-            return
+            return None
 
         actual_status = review.frontmatter.get("status")
         if actual_status != expected_status:
@@ -484,6 +513,75 @@ class PlanValidator:
                 progress.path,
                 f"latest_review must have status {expected_status!r}, got {actual_status!r}",
             )
+        return review
+
+    def plan_integration_review_is_current(
+        self,
+        plan_id: str,
+        progress: MarkdownDocument,
+        *,
+        report_errors: bool,
+    ) -> bool:
+        review = self.read_review(progress)
+        if review is None:
+            if report_errors:
+                self.error(
+                    progress.path,
+                    "a completed plan must record a clean integration latest_review",
+                )
+            return False
+
+        expected = {
+            "plan": plan_id,
+            "task": None,
+            "review_kind": "plan-integration",
+            "status": "clean",
+            "worktree": progress.frontmatter.get("integration_worktree"),
+            "branch": progress.frontmatter.get("integration_branch"),
+            "head_commit": progress.frontmatter.get("integration_head_commit"),
+            "uncommitted_changes": progress.frontmatter.get(
+                "integration_uncommitted_changes"
+            ),
+        }
+        matches = True
+        for key, expected_value in expected.items():
+            actual_value = review.frontmatter.get(key)
+            if actual_value != expected_value:
+                matches = False
+                if report_errors:
+                    self.error(
+                        progress.path,
+                        f"integration latest_review {key} must be {expected_value!r}, "
+                        f"got {actual_value!r}",
+                    )
+        return matches
+
+    def validate_task_final_review(
+        self,
+        definition: MarkdownDocument,
+        progress: MarkdownDocument,
+        expected_status: str,
+    ) -> None:
+        review = self.validate_review_result(progress, expected_status)
+        if review is None:
+            return
+
+        expected = {
+            "plan": definition.frontmatter.get("plan"),
+            "task": definition.frontmatter.get("id"),
+            "review_kind": "task-final",
+            "worktree": progress.frontmatter.get("worktree"),
+            "branch": progress.frontmatter.get("branch"),
+            "head_commit": progress.frontmatter.get("head_commit"),
+            "uncommitted_changes": progress.frontmatter.get("uncommitted_changes"),
+        }
+        for key, expected_value in expected.items():
+            actual_value = review.frontmatter.get(key)
+            if actual_value != expected_value:
+                self.error(
+                    progress.path,
+                    f"latest_review {key} must be {expected_value!r}, got {actual_value!r}",
+                )
 
     def validate_plan_definition(
         self, document: MarkdownDocument, plan_id: str
@@ -496,6 +594,9 @@ class PlanValidator:
             "worktree",
             "branch",
             "baseline_commit",
+            "planned_integration_worktree",
+            "planned_integration_branch",
+            "delivery_branch",
             "approved_at",
         }
         self.require_keys(document, required)
@@ -504,6 +605,11 @@ class PlanValidator:
         self.validate_timestamp(document)
         self.validate_timestamp(document, "approved_at")
         self.validate_worktree(document, allow_null=False)
+        self.validate_worktree(
+            document,
+            allow_null=False,
+            key="planned_integration_worktree",
+        )
         self.validate_commit(document, "baseline_commit")
         if document.frontmatter.get("id") != plan_id:
             self.error(document.path, f"id must match plan folder name {plan_id!r}")
@@ -515,22 +621,64 @@ class PlanValidator:
             "branch"
         ):
             self.error(document.path, "branch must be a non-empty string")
+        for key in ("planned_integration_branch", "delivery_branch"):
+            if not isinstance(document.frontmatter.get(key), str) or not document.frontmatter.get(
+                key
+            ):
+                self.error(document.path, f"{key} must be a non-empty string")
 
     def validate_plan_progress(
         self, document: MarkdownDocument, plan_id: str
     ) -> None:
         self.require_keys(
             document,
-            {"plan", "status", "updated", "current_tasks", "latest_handoff"},
+            {
+                "plan",
+                "status",
+                "updated",
+                "current_tasks",
+                "integration_worktree",
+                "integration_branch",
+                "integration_head_commit",
+                "integration_uncommitted_changes",
+                "latest_handoff",
+                "latest_review",
+            },
         )
         self.require_sections(document, PLAN_PROGRESS_SECTIONS)
         self.validate_status(document, PLAN_STATUSES)
         self.validate_timestamp(document)
+        self.validate_worktree(document, allow_null=True, key="integration_worktree")
+        self.validate_commit(document, "integration_head_commit")
         self.validate_artifact_path(document, "latest_handoff", "plans")
+        self.validate_artifact_path(document, "latest_review", "reviews")
         if document.frontmatter.get("plan") != plan_id:
             self.error(document.path, f"plan must match plan folder name {plan_id!r}")
         if not isinstance(document.frontmatter.get("current_tasks"), list):
             self.error(document.path, "current_tasks must be a YAML flow list")
+
+        integration_values = {
+            "integration_worktree": document.frontmatter.get("integration_worktree"),
+            "integration_branch": document.frontmatter.get("integration_branch"),
+            "integration_head_commit": document.frontmatter.get("integration_head_commit"),
+            "integration_uncommitted_changes": document.frontmatter.get(
+                "integration_uncommitted_changes"
+            ),
+        }
+        if any(value is not None for value in integration_values.values()):
+            if integration_values["integration_worktree"] is None:
+                self.error(document.path, "an integration checkout must record its worktree")
+            if not isinstance(integration_values["integration_branch"], str) or not integration_values[
+                "integration_branch"
+            ]:
+                self.error(document.path, "an integration checkout must record its branch")
+            if integration_values["integration_head_commit"] is None:
+                self.error(document.path, "an integration checkout must record its head commit")
+            if not isinstance(integration_values["integration_uncommitted_changes"], bool):
+                self.error(
+                    document.path,
+                    "an integration checkout must record uncommitted changes as true or false",
+                )
 
     def validate_task_definition(
         self, document: MarkdownDocument, plan_id: str, task_id: str
@@ -579,6 +727,7 @@ class PlanValidator:
             "worktree",
             "branch",
             "head_commit",
+            "integrated_commit",
             "uncommitted_changes",
             "latest_handoff",
             "latest_review",
@@ -589,6 +738,7 @@ class PlanValidator:
         self.validate_timestamp(document)
         self.validate_worktree(document, allow_null=True)
         self.validate_commit(document, "head_commit")
+        self.validate_commit(document, "integrated_commit")
         self.validate_artifact_path(document, "latest_handoff", "plans")
         self.validate_artifact_path(document, "latest_review", "reviews")
         if document.frontmatter.get("task") != task_id:
@@ -615,6 +765,11 @@ class PlanValidator:
             self.error(document.path, "branch must be a non-empty string or null")
         if uncommitted is not None and not isinstance(uncommitted, bool):
             self.error(document.path, "uncommitted_changes must be true, false, or null")
+        integrated_commit = document.frontmatter.get("integrated_commit")
+        if status == "completed" and integrated_commit is None:
+            self.error(document.path, "a completed task must record its integrated_commit")
+        elif status != "completed" and integrated_commit is not None:
+            self.error(document.path, "an incomplete task must set integrated_commit to null")
 
     def validate_related_paths(
         self, document: MarkdownDocument
@@ -831,6 +986,7 @@ class PlanValidator:
 
     def validate_planned_assignments(
         self,
+        plan: MarkdownDocument,
         definitions: dict[str, MarkdownDocument],
     ) -> None:
         for field in ("planned_worktree", "planned_branch"):
@@ -845,6 +1001,23 @@ class PlanValidator:
                         definitions[task_ids[0]].path,
                         f"tasks {', '.join(sorted(task_ids))} share {field} {value!r}",
                     )
+
+        for plan_field, task_field in (
+            ("planned_integration_worktree", "planned_worktree"),
+            ("planned_integration_branch", "planned_branch"),
+        ):
+            plan_value = plan.frontmatter.get(plan_field)
+            conflicts = [
+                task_id
+                for task_id, document in definitions.items()
+                if document.frontmatter.get(task_field) == plan_value
+            ]
+            if conflicts:
+                self.error(
+                    plan.path,
+                    f"{plan_field} {plan_value!r} is shared with tasks "
+                    f"{', '.join(sorted(conflicts))}",
+                )
 
     def validate_plan_tasks_table(
         self,
@@ -1016,6 +1189,36 @@ class PlanValidator:
 
         plan_status = plan_progress.frontmatter.get("status")
         statuses = list(actual_statuses.values())
+        for planned_key, actual_key in (
+            ("planned_integration_worktree", "integration_worktree"),
+            ("planned_integration_branch", "integration_branch"),
+        ):
+            planned_value = plan.frontmatter.get(planned_key)
+            actual_value = plan_progress.frontmatter.get(actual_key)
+            if actual_value is not None and actual_value != planned_value:
+                self.error(
+                    plan_progress.path,
+                    f"{actual_key} must match {planned_key} {planned_value!r}",
+                )
+
+        integration_assignment_recorded = (
+            isinstance(plan_progress.frontmatter.get("integration_worktree"), str)
+            and isinstance(plan_progress.frontmatter.get("integration_branch"), str)
+            and isinstance(plan_progress.frontmatter.get("integration_head_commit"), str)
+            and isinstance(
+                plan_progress.frontmatter.get("integration_uncommitted_changes"),
+                bool,
+            )
+        )
+        if (
+            any(status != "not-started" for status in statuses)
+            and not integration_assignment_recorded
+        ):
+            self.error(
+                plan_progress.path,
+                "started task work requires a recorded plan integration checkout",
+            )
+
         dependencies: dict[str, list[str]] = {}
         for task_id, definition in definitions.items():
             values = definition.frontmatter.get("depends_on")
@@ -1053,25 +1256,66 @@ class PlanValidator:
             for task_id, status in actual_statuses.items()
             if status == "in-progress"
         }
-        review_work = {
+        review_and_integration_work = {
             task_id
             for task_id, status in actual_statuses.items()
-            if status in {"ready-for-review", "needs-fix"}
+            if status in {"ready-for-review", "ready-for-integration", "needs-fix"}
         }
         all_tasks_completed = bool(statuses) and all(
             status == "completed" for status in statuses
         )
         criteria = self.checklist_states(plan, "Completion Criteria")
         criteria_completed = bool(criteria) and all(criteria)
+        integration_validation = self.labeled_list_value(
+            plan_progress,
+            "Integration",
+            "Validation",
+        ).lower()
+        integration_validation_recorded = bool(integration_validation) and (
+            integration_validation not in NONE_VALUES | {"not run", "not run."}
+        )
+        integration_review_current = self.plan_integration_review_is_current(
+            plan.frontmatter.get("id", ""),
+            plan_progress,
+            report_errors=False,
+        )
+        integration_state_complete = (
+            integration_assignment_recorded
+            and plan_progress.frontmatter.get("integration_uncommitted_changes") is False
+        )
+        completed_integration_commits = {
+            document.frontmatter.get("integrated_commit")
+            for task_id, document in task_progress.items()
+            if actual_statuses.get(task_id) == "completed"
+            and isinstance(document.frontmatter.get("integrated_commit"), str)
+        }
+        if (
+            completed_integration_commits
+            and plan_progress.frontmatter.get("integration_head_commit")
+            not in completed_integration_commits
+        ):
+            self.error(
+                plan_progress.path,
+                "integration_head_commit must match a completed task integration",
+            )
+        completion_ready = (
+            all_tasks_completed
+            and criteria_completed
+            and integration_state_complete
+            and integration_validation_recorded
+            and integration_review_current
+        )
         plan_has_blockers = self.has_meaningful_content(
             self.section_body(plan_progress, "Blockers")
         )
 
-        if all_tasks_completed:
-            expected_status = "completed" if criteria_completed else "in-progress"
+        if completion_ready:
+            expected_status = "completed"
+        elif all_tasks_completed:
+            expected_status = "in-progress"
         elif statuses and all(status == "not-started" for status in statuses):
             expected_status = "not-started"
-        elif active or actionable or review_work:
+        elif active or actionable or review_and_integration_work:
             expected_status = "in-progress"
         else:
             expected_status = "blocked"
@@ -1082,14 +1326,36 @@ class PlanValidator:
                     "all tasks are completed but unchecked plan completion criteria "
                     "require status in-progress"
                 )
-            elif all_tasks_completed:
+            elif all_tasks_completed and not integration_state_complete:
                 message = (
-                    "all tasks and plan completion criteria are complete, so the plan "
-                    "must be completed"
+                    "all tasks and plan completion criteria are complete but the plan "
+                    "integration state is not complete"
+                )
+            elif all_tasks_completed and not integration_validation_recorded:
+                message = (
+                    "all tasks and plan completion criteria are complete but combined "
+                    "integration validation is not recorded"
+                )
+            elif all_tasks_completed and not integration_review_current:
+                message = (
+                    "all tasks and plan completion criteria are complete but a clean "
+                    "review of the current integration head is still required"
                 )
             else:
                 message = f"plan status must be {expected_status!r} for the current task state"
             self.error(plan_progress.path, message)
+
+        if plan_status == "completed":
+            if not integration_validation_recorded:
+                self.error(
+                    plan_progress.path,
+                    "a completed plan must record combined integration validation",
+                )
+            self.plan_integration_review_is_current(
+                plan.frontmatter.get("id", ""),
+                plan_progress,
+                report_errors=True,
+            )
 
         if plan_status == "blocked" and not plan_has_blockers:
             self.error(plan_progress.path, "a blocked plan must record an unresolved blocker")
@@ -1107,8 +1373,10 @@ class PlanValidator:
                 "plan Blockers must summarize blockers from blocked tasks",
             )
 
-        expected_actions = set(active | actionable | review_work | blocked_tasks)
-        if all_tasks_completed and not criteria_completed:
+        expected_actions = set(
+            active | actionable | review_and_integration_work | blocked_tasks
+        )
+        if all_tasks_completed and not completion_ready:
             expected_actions = {"plan"}
         if plan_status == "completed":
             expected_actions = set()
@@ -1177,6 +1445,23 @@ class PlanValidator:
                         f"parallel tasks {', '.join(sorted(task_ids))} share {field} {value!r}",
                     )
 
+        for integration_field, task_field in (
+            ("integration_worktree", "worktree"),
+            ("integration_branch", "branch"),
+        ):
+            integration_value = plan_progress.frontmatter.get(integration_field)
+            conflicts = [
+                task_id
+                for task_id, document in active.items()
+                if document.frontmatter.get(task_field) == integration_value
+            ]
+            if integration_value is not None and conflicts:
+                self.error(
+                    plan_progress.path,
+                    f"{integration_field} {integration_value!r} is shared with active tasks "
+                    f"{', '.join(sorted(conflicts))}",
+                )
+
     def validate_task_completion(
         self,
         definition: MarkdownDocument,
@@ -1208,13 +1493,45 @@ class PlanValidator:
                     progress.path,
                     "a ready-for-review task must record latest_handoff",
                 )
+        if status == "ready-for-integration":
+            if criteria and not all(criteria):
+                self.error(
+                    progress.path,
+                    "a ready-for-integration task requires every acceptance criterion checked",
+                )
+            if blockers:
+                self.error(
+                    progress.path,
+                    "a ready-for-integration task cannot have unresolved blockers",
+                )
+            if not validation_recorded:
+                self.error(
+                    progress.path,
+                    "a ready-for-integration task must record implementation validation",
+                )
+            if not isinstance(latest_handoff, str):
+                self.error(
+                    progress.path,
+                    "a ready-for-integration task must record latest_handoff",
+                )
+            if not isinstance(latest_review, str):
+                self.error(
+                    progress.path,
+                    "a ready-for-integration task must record the clean latest_review",
+                )
+            else:
+                self.validate_task_final_review(definition, progress, "clean")
         if status == "needs-fix":
             if not isinstance(latest_handoff, str):
                 self.error(progress.path, "a needs-fix task must record latest_handoff")
             if not isinstance(latest_review, str):
                 self.error(progress.path, "a needs-fix task must record latest_review")
             else:
-                self.validate_review_result(progress, "actionable-findings")
+                self.validate_task_final_review(
+                    definition,
+                    progress,
+                    "actionable-findings",
+                )
         if status == "completed":
             if criteria and not all(criteria):
                 self.error(
@@ -1236,7 +1553,7 @@ class PlanValidator:
                     "a completed task must record the clean latest_review",
                 )
             else:
-                self.validate_review_result(progress, "clean")
+                self.validate_task_final_review(definition, progress, "clean")
         elif not next_action:
             self.error(progress.path, "an incomplete task must record one exact next action")
 
@@ -1356,7 +1673,8 @@ class PlanValidator:
                             f"uses {sorted(plan_uses)!r}",
                         )
         self.validate_dependencies(definitions, task_ids)
-        self.validate_planned_assignments(definitions)
+        if plan is not None:
+            self.validate_planned_assignments(plan, definitions)
         if plan is not None and plan_progress is not None:
             self.validate_status_consistency(
                 plan,

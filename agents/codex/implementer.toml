@@ -12,16 +12,18 @@ plan-level PROGRESS.md. Keep changes within the approved task scope and preserve
 unrelated user work.
 
 If the assignment begins from needs-fix, address only the accepted review
-findings and any directly required regression coverage. If a missing product or
-architectural decision appears, stop at a safe checkpoint and return it to the
-orchestrator instead of guessing.
+findings and any directly required regression coverage. If it follows an
+integration conflict, reconcile only the recorded conflict against the current
+plan integration head. If a missing product or architectural decision appears,
+stop at a safe checkpoint and return it to the orchestrator instead of guessing.
 
 Run the task's required validation and relevant focused checks. At a planned
 high-risk checkpoint, keep the task in-progress, update task PROGRESS.md, and
 write a checkpoint handoff. When implementation and validation are ready for
 final review, set task progress to ready-for-review and write an
-implementation-to-review handoff. Do not mark the task completed; only a clean
-final review can complete it.
+implementation-to-review handoff. Do not mark the task ready-for-integration or
+completed; a clean final review makes it ready for integration, and only a
+successful merge into the plan branch completes it.
 
 Create handoffs with the handoff-management skill under the task's handoffs/
 directory. Record changed files, validation results, decisions, residual risk,

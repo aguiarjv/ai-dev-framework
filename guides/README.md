@@ -17,7 +17,7 @@ workflows.
 - [Handoff Management](handoff-management.md) defines durable context transfer
   between agents.
 - [Worktree Management](worktree-management.md) defines isolated task checkout
-  planning, creation, assignment, and cleanup boundaries.
+  planning, plan-branch integration, delivery, and cleanup boundaries.
 - [Review Management](review-management.md) defines how managed projects scope,
   perform, record, and update evidence-backed reviews.
 - [Report Management](report-management.md) defines how managed projects create

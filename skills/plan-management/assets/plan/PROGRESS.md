@@ -3,7 +3,12 @@ plan: "<plan-name>"
 status: not-started
 updated: "<YYYY-MM-DDTHH:MM:SSZ>"
 current_tasks: []
+integration_worktree: null
+integration_branch: null
+integration_head_commit: null
+integration_uncommitted_changes: null
 latest_handoff: null
+latest_review: null
 ---
 
 # Plan Progress: <Plan Title>
@@ -11,6 +16,14 @@ latest_handoff: null
 ## Summary
 
 <Summarize the current overall state of the plan.>
+
+## Integration
+
+- State: Not created.
+- Integrated tasks: None.
+- Validation: Not run.
+- Review: Not run.
+- Delivery: Not performed.
 
 ## Task Status
 

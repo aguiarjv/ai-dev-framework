@@ -41,6 +41,7 @@ class PlanFixture:
         assignments: dict[str, tuple[str, str]] | None = None,
         plan_related_path: str = "src/app.py",
         include_documentation: bool = True,
+        include_integration_review: bool | None = None,
     ) -> None:
         statuses = statuses or {task_id: "not-started" for task_id in self.task_ids}
         dependencies = dependencies or {
@@ -50,8 +51,15 @@ class PlanFixture:
         plan_dependencies = plan_dependencies or dependencies
         task_blockers = task_blockers or {}
         assignments = assignments or {}
+        if include_integration_review is None:
+            include_integration_review = plan_status == "completed"
 
         task_rows: list[str] = []
+        completed_task_ids = [
+            task_id for task_id in self.task_ids if statuses[task_id] == "completed"
+        ]
+        last_completed_task = completed_task_ids[-1] if completed_task_ids else None
+
         for task_id in self.task_ids:
             depends_on = plan_dependencies[task_id]
             dependency_cell = (
@@ -84,6 +92,9 @@ updated: "2026-09-13T12:00:00Z"
 worktree: "worktrees/main"
 branch: "main"
 baseline_commit: "{'a' * 40}"
+planned_integration_worktree: "worktrees/demo-plan-integration"
+planned_integration_branch: "plan/demo-plan"
+delivery_branch: "main"
 approved_at: "2026-09-13T12:00:00Z"
 ---
 
@@ -110,6 +121,13 @@ The feature does not exist yet.
 ## Approach
 
 Implement before testing.
+
+## Integration
+
+- Task integration: Merge cleanly reviewed task branches into `plan/demo-plan`.
+- Integration order: Task sequence among simultaneously ready tasks.
+- Integration validation: Run the complete automated test suite.
+- Delivery: Merge to `main` only with separate authorization.
 
 ## Dependencies
 
@@ -155,7 +173,8 @@ Implement before testing.
         ]
         if next_actions is None:
             if all(status == "completed" for status in statuses.values()):
-                next_actions = [] if plan_criteria_checked else ["plan"]
+                completion_ready = plan_criteria_checked and include_integration_review
+                next_actions = [] if completion_ready else ["plan"]
             elif plan_status == "completed":
                 next_actions = []
             else:
@@ -163,7 +182,13 @@ Implement before testing.
                     task_id
                     for task_id, status in statuses.items()
                     if status
-                    in {"in-progress", "ready-for-review", "needs-fix", "blocked"}
+                    in {
+                        "in-progress",
+                        "ready-for-review",
+                        "ready-for-integration",
+                        "needs-fix",
+                        "blocked",
+                    }
                     or (
                         status == "not-started"
                         and all(
@@ -179,6 +204,28 @@ Implement before testing.
             f"| `{task_id}` | `{status}` | {status.replace('-', ' ').title()}. |"
             for task_id, status in statuses.items()
         )
+        integration_created = any(
+            status != "not-started" for status in statuses.values()
+        ) or plan_status != "not-started"
+        integration_worktree = (
+            '"worktrees/demo-plan-integration"' if integration_created else "null"
+        )
+        integration_branch = '"plan/demo-plan"' if integration_created else "null"
+        integration_head = f'"{"c" * 40}"' if integration_created else "null"
+        integration_uncommitted = "false" if integration_created else "null"
+        latest_plan_review = (
+            '"reviews/demo-plan-integration-review-001.md"'
+            if include_integration_review
+            else "null"
+        )
+        if include_integration_review:
+            self._write_plan_review("clean")
+        integration_validation = (
+            "Complete automated test suite passed."
+            if all(status == "completed" for status in statuses.values())
+            and plan_criteria_checked
+            else "Not run."
+        )
         self._write(
             self.plan_dir / "PROGRESS.md",
             f"""---
@@ -186,7 +233,12 @@ plan: "demo-plan"
 status: {plan_status}
 updated: "2026-09-13T12:00:00Z"
 current_tasks: {json.dumps(current_tasks)}
+integration_worktree: {integration_worktree}
+integration_branch: {integration_branch}
+integration_head_commit: {integration_head}
+integration_uncommitted_changes: {integration_uncommitted}
 latest_handoff: null
+latest_review: {latest_plan_review}
 ---
 
 # Plan Progress: Demo plan
@@ -194,6 +246,14 @@ latest_handoff: null
 ## Summary
 
 Current plan state.
+
+## Integration
+
+- State: Current.
+- Integrated tasks: Recorded by completed task status.
+- Validation: {integration_validation}
+- Review: Recorded in latest_review when complete.
+- Delivery: Not performed.
 
 ## Task Status
 
@@ -232,7 +292,11 @@ Current plan state.
                         "| `workspace-guide` | `existing` | `inspect` "
                         "| Defines planning rules. | Explorer read it. |"
                     )
-            acceptance_checked = "x" if statuses[task_id] == "completed" else " "
+            acceptance_checked = (
+                "x"
+                if statuses[task_id] in {"ready-for-integration", "completed"}
+                else " "
+            )
             self._write(
                 task_dir / "TASK.md",
                 f"""---
@@ -312,6 +376,14 @@ Complete {task_id}.
                 latest_review = f'"reviews/demo-plan-{task_id}-review-001.md"'
                 review_result = "Actionable findings."
                 self._write_review(task_id, "actionable-findings")
+            elif status == "ready-for-integration":
+                latest_handoff = (
+                    f'"plans/demo-plan/tasks/{task_id}/handoffs/'
+                    '002-reviewer-to-orchestrator.md"'
+                )
+                latest_review = f'"reviews/demo-plan-{task_id}-review-001.md"'
+                review_result = "Clean; awaiting integration."
+                self._write_review(task_id, "clean")
             elif status == "completed":
                 latest_handoff = (
                     f'"plans/demo-plan/tasks/{task_id}/handoffs/'
@@ -327,10 +399,22 @@ Complete {task_id}.
 
             validation = (
                 "Automated tests passed."
-                if status in {"ready-for-review", "needs-fix", "completed"}
+                if status
+                in {
+                    "ready-for-review",
+                    "ready-for-integration",
+                    "needs-fix",
+                    "completed",
+                }
                 else "Not run."
             )
             next_action = "None." if status == "completed" else f"Continue {task_id}."
+            if status != "completed":
+                integrated_commit = "null"
+            elif task_id == last_completed_task:
+                integrated_commit = f'"{"c" * 40}"'
+            else:
+                integrated_commit = f'"{"d" * 40}"'
             self._write(
                 task_dir / "PROGRESS.md",
                 f"""---
@@ -340,6 +424,7 @@ updated: "2026-09-13T12:00:00Z"
 worktree: {worktree}
 branch: {branch}
 head_commit: {head_commit}
+integrated_commit: {integrated_commit}
 uncommitted_changes: {uncommitted}
 latest_handoff: {latest_handoff}
 latest_review: {latest_review}
@@ -387,10 +472,35 @@ Current task state.
         self._write(
             self.project_root / "reviews" / f"demo-plan-{task_id}-review-001.md",
             f"""---
+plan: "demo-plan"
+task: "{task_id}"
+review_kind: "task-final"
 status: {status}
+worktree: "worktrees/{task_id}"
+branch: "task/{task_id}"
+head_commit: "{'b' * 40}"
+uncommitted_changes: false
 ---
 
 # Review
+""",
+        )
+
+    def _write_plan_review(self, status: str) -> None:
+        self._write(
+            self.project_root / "reviews" / "demo-plan-integration-review-001.md",
+            f"""---
+plan: "demo-plan"
+task: null
+review_kind: "plan-integration"
+status: {status}
+worktree: "worktrees/demo-plan-integration"
+branch: "plan/demo-plan"
+head_commit: "{'c' * 40}"
+uncommitted_changes: false
+---
+
+# Integration Review
 """,
         )
 
@@ -438,6 +548,49 @@ class PlanValidatorTests(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_completed_tasks_and_criteria_wait_for_integration_review(self) -> None:
+        errors = self.run_fixture(
+            statuses={task_id: "completed" for task_id in PlanFixture.task_ids},
+            plan_status="in-progress",
+            plan_criteria_checked=True,
+            include_integration_review=False,
+        )
+        self.assertEqual(errors, [])
+
+    def test_completed_plan_requires_current_clean_integration_review(self) -> None:
+        errors = self.run_fixture(
+            statuses={task_id: "completed" for task_id in PlanFixture.task_ids},
+            plan_status="completed",
+            plan_criteria_checked=True,
+            include_integration_review=False,
+        )
+        self.assertTrue(
+            any("clean review of the current integration head" in error for error in errors)
+        )
+
+    def test_completed_plan_requires_combined_integration_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task_id: "completed" for task_id in PlanFixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            progress_path = fixture.plan_dir / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            progress_path.write_text(
+                content.replace(
+                    "- Validation: Complete automated test suite passed.",
+                    "- Validation: Not run.",
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("must record combined integration validation" in error for error in errors)
+        )
+
     def test_started_task_requires_completed_dependencies(self) -> None:
         errors = self.run_fixture(
             statuses={"001-build": "not-started", "002-test": "in-progress"},
@@ -451,6 +604,41 @@ class PlanValidatorTests(unittest.TestCase):
             plan_status="in-progress",
         )
         self.assertEqual(errors, [])
+
+    def test_ready_for_integration_task_is_valid(self) -> None:
+        errors = self.run_fixture(
+            statuses={
+                "001-build": "ready-for-integration",
+                "002-test": "not-started",
+            },
+            plan_status="in-progress",
+        )
+        self.assertEqual(errors, [])
+
+    def test_ready_for_integration_review_must_match_task_head(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={
+                    "001-build": "ready-for-integration",
+                    "002-test": "not-started",
+                },
+                plan_status="in-progress",
+            )
+            review_path = fixture.project_root / "reviews" / "demo-plan-001-build-review-001.md"
+            content = review_path.read_text(encoding="utf-8")
+            review_path.write_text(
+                content.replace(
+                    f'head_commit: "{"b" * 40}"',
+                    f'head_commit: "{"e" * 40}"',
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("latest_review head_commit must be" in error for error in errors)
+        )
 
     def test_needs_fix_task_is_valid(self) -> None:
         errors = self.run_fixture(
@@ -499,6 +687,46 @@ class PlanValidatorTests(unittest.TestCase):
 
         self.assertTrue(
             any("completed task must record the clean latest_review" in error for error in errors)
+        )
+
+    def test_completed_task_requires_integrated_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task_id: "completed" for task_id in PlanFixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            progress_path = fixture.plan_dir / "tasks" / "001-build" / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            progress_path.write_text(
+                content.replace(f'integrated_commit: "{"d" * 40}"', "integrated_commit: null"),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("completed task must record its integrated_commit" in error for error in errors)
+        )
+
+    def test_completed_plan_review_must_match_integration_head(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task_id: "completed" for task_id in PlanFixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            review_path = fixture.project_root / "reviews" / "demo-plan-integration-review-001.md"
+            content = review_path.read_text(encoding="utf-8")
+            review_path.write_text(
+                content.replace(f'head_commit: "{"c" * 40}"', f'head_commit: "{"e" * 40}"'),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("integration latest_review head_commit must be" in error for error in errors)
         )
 
     def test_completed_task_requires_clean_review_result(self) -> None:
@@ -557,6 +785,99 @@ class PlanValidatorTests(unittest.TestCase):
             errors = fixture.errors()
 
         self.assertTrue(any("share planned_worktree" in error for error in errors))
+
+    def test_task_assignment_cannot_share_plan_integration_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write()
+            task_path = fixture.plan_dir / "tasks" / "001-build" / "TASK.md"
+            content = task_path.read_text(encoding="utf-8")
+            task_path.write_text(
+                content.replace(
+                    "worktrees/demo-plan-001-build",
+                    "worktrees/demo-plan-integration",
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(any("planned_integration_worktree" in error for error in errors))
+
+    def test_started_task_requires_plan_integration_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={"001-build": "in-progress", "002-test": "not-started"},
+                plan_status="in-progress",
+            )
+            progress_path = fixture.plan_dir / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            content = content.replace(
+                'integration_worktree: "worktrees/demo-plan-integration"',
+                "integration_worktree: null",
+            )
+            content = content.replace(
+                'integration_branch: "plan/demo-plan"',
+                "integration_branch: null",
+            )
+            content = content.replace(
+                f'integration_head_commit: "{"c" * 40}"',
+                "integration_head_commit: null",
+            )
+            content = content.replace(
+                "integration_uncommitted_changes: false",
+                "integration_uncommitted_changes: null",
+            )
+            progress_path.write_text(content, encoding="utf-8")
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("started task work requires" in error for error in errors)
+        )
+
+    def test_actual_integration_assignment_must_match_plan(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={"001-build": "in-progress", "002-test": "not-started"},
+                plan_status="in-progress",
+            )
+            progress_path = fixture.plan_dir / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            progress_path.write_text(
+                content.replace(
+                    'integration_branch: "plan/demo-plan"',
+                    'integration_branch: "plan/wrong"',
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("integration_branch must match planned_integration_branch" in error for error in errors)
+        )
+
+    def test_integration_head_must_match_latest_completed_task_merge(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={"001-build": "completed", "002-test": "not-started"},
+                plan_status="in-progress",
+            )
+            progress_path = fixture.plan_dir / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            progress_path.write_text(
+                content.replace(
+                    f'integration_head_commit: "{"c" * 40}"',
+                    f'integration_head_commit: "{"e" * 40}"',
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any("must match a completed task integration" in error for error in errors)
+        )
 
     def test_required_adr_must_use_docs_adrs_path(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

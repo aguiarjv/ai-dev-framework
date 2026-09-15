@@ -17,7 +17,8 @@ Use this skill inside an `implementer` agent. Follow the
 2. Confirm the task is `in-progress`, its dependencies are completed, and the
    recorded worktree and branch match the current checkout.
 3. Confirm the assignment is either the approved task scope or an accepted set
-   of review findings.
+   of review findings or integration-conflict corrections recorded by the
+   orchestrator.
 
 Stop and report a mismatch rather than editing a different checkout or task.
 
@@ -49,4 +50,6 @@ When the implementation satisfies its requirements and focused validation:
    handoff-management skill.
 5. Return a concise result and the handoff path to the orchestrator.
 
-Do not mark the task `completed`; completion requires a clean final review.
+Do not mark the task `ready-for-integration` or `completed`. A clean final
+review moves it to `ready-for-integration`; only successful integration into
+the plan branch completes it.

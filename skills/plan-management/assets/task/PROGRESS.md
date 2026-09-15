@@ -5,6 +5,7 @@ updated: "<YYYY-MM-DDTHH:MM:SSZ>"
 worktree: null
 branch: null
 head_commit: null
+integrated_commit: null
 uncommitted_changes: null
 latest_handoff: null
 latest_review: null

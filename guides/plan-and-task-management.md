@@ -39,12 +39,13 @@ number so their intended order is clear and their paths remain stable.
 
 Keep definitions separate from execution progress:
 
-- `PLAN.md` defines the exploration baseline, goal, scope, approach, ordered
-  tasks, dependencies, related repository paths, relevant documentation and
-  guides, open questions, and completion criteria.
+- `PLAN.md` defines the exploration baseline, goal, scope, approach, integration
+  and delivery assignments, ordered tasks, dependencies, related repository
+  paths, relevant documentation and guides, open questions, and completion
+  criteria.
 - The plan-level `PROGRESS.md` summarizes the state of the complete plan,
-  including completed tasks, current and next tasks, blockers, and next
-  actions.
+  including the current integration head, completed tasks, current and next
+  tasks, blockers, and next actions.
 - `TASK.md` defines one task's objective, requirements, dependencies, related
   repository paths, relevant documentation and guides, acceptance criteria,
   and validation expectations.
@@ -77,12 +78,24 @@ creation:
   repository has no commits.
 - `approved_at`: The ISO 8601 UTC time when the user approved the proposed plan
   and task breakdown.
+- `planned_integration_worktree`: The isolated checkout owned by the
+  orchestrator for combining reviewed task branches.
+- `planned_integration_branch`: The branch that represents the combined plan
+  result, normally `plan/<plan-id>`.
+- `delivery_branch`: The eventual target branch. Recording it does not
+  authorize merging or pushing the plan result there.
 
 Each task definition records its intended isolated assignment:
 
 - `planned_worktree`: A path below `worktrees/` relative to the managed project.
 - `planned_branch`: The branch intended for the task.
 - `review_required`: `true` for the required final implementation review.
+
+Plan progress records `integration_worktree`, `integration_branch`,
+`integration_head_commit`, and `integration_uncommitted_changes` for the actual
+combined checkout, plus `latest_review` for the current plan integration
+review. Task progress records `integrated_commit`, which remains `null` until
+the reviewed task result is merged into the plan integration branch.
 
 ## Statuses
 
@@ -98,6 +111,8 @@ Tasks use those values and these review-loop states:
 
 - `ready-for-review`: Implementation and focused validation are complete; the
   recorded head state is awaiting review.
+- `ready-for-integration`: The final task review is clean; the recorded task
+  head is waiting to be merged into the plan integration branch.
 - `needs-fix`: A review has actionable findings requiring a fresh correction
   pass.
 
@@ -114,25 +129,32 @@ Apply these lifecycle rules:
   Dependencies must not be self-referential or cyclic.
 - A plan is `not-started` while all tasks are `not-started`.
 - A plan is `in-progress` while work has begun and at least one incomplete task
-  is active, actionable, ready for review, or needs a fix, or while all tasks
-  are complete but plan-level completion criteria remain unfinished.
+  is active, actionable, ready for review, ready for integration, or needs a
+  fix, or while all tasks are complete but plan-level completion criteria,
+  combined validation, or the final integration review remains unfinished.
 - A plan is `blocked` when incomplete tasks remain but no task can proceed
   because of one or more recorded unresolved blockers, including tasks that
   depend on blocked tasks.
-- A plan is `completed` only under the completion rules below.
+- A plan is `completed` only under the integration and completion rules below.
 - Completed tasks and plans are terminal. Reopen one only when the user
   explicitly requests it. Record the reason, set the reopened item to
   `in-progress`, refresh its progress state, and, for a plan, move it from
   `plans/done/` back to `plans/` before continuing.
 - When reopening a task makes a completed transitive dependent's dependency
   incomplete, reset that dependent to `not-started`, record why its prior
-  completion must be reassessed, and repeat through the dependency graph. If
-  the plan was completed, reopen and move the plan before changing its tasks.
+  completion must be reassessed, clear its `integrated_commit`, and repeat
+  through the dependency graph. Clear the reopened task's `integrated_commit`.
+  Preserve the existing plan-branch history and integrate corrected results as
+  new commits. If the plan was completed, reopen and move the plan before
+  changing its tasks, and clear the stale plan-level `latest_review`.
 - An implementer moves a task from `in-progress` to `ready-for-review`; it does
   not complete the task.
-- A clean final review moves `ready-for-review` to `completed`. Actionable
-  findings move it to `needs-fix`; the orchestrator moves it to `in-progress`
-  when assigning a fresh correction agent.
+- A clean final review moves `ready-for-review` to `ready-for-integration`.
+  Actionable findings move it to `needs-fix`; the orchestrator moves it to
+  `in-progress` when assigning a fresh correction agent.
+- A task moves from `ready-for-integration` to `completed` only after its exact
+  reviewed head is merged into the plan integration branch, its validation
+  passes there, and the resulting integration commit is recorded.
 
 Never renumber or reuse an existing task ID. Add a task with the next unused
 three-digit sequence after the highest sequence already assigned, even when an
@@ -239,16 +261,20 @@ how to proceed instead of silently skipping exploration.
 2. Resolve the exploration baseline, launch explorer subagents, and consolidate
    the current-state findings, probable related paths, relevant project
    documentation and workspace guides, supporting evidence, and open questions.
-3. Record planned worktree and branch names for every task and present the
-   complete plan and task breakdown to the user.
+3. Record the plan integration worktree and branch, integration order, delivery
+   branch, combined validation, final integration review, and planned worktree
+   and branch names for every task. Present the complete plan and task breakdown
+   to the user.
 4. After user approval, create `plans/<plan-name>/` with `PLAN.md`,
    `PROGRESS.md`, `handoffs/`, and `tasks/`.
 5. Create each numbered task folder with `TASK.md`, `PROGRESS.md`, and
    `handoffs/`.
 6. Persist accepted explorer handoffs at plan level and initialize progress
    with the first actionable tasks.
-7. Create worktrees for immediately actionable tasks. Create dependent task
-   worktrees only after their dependencies complete.
+7. Create the plan integration worktree from the approved baseline, then create
+   worktrees for immediately actionable tasks from its recorded head. Create
+   dependent task worktrees only after their dependencies are integrated and
+   complete.
 
 Do not invent missing scope, requirements, dependencies, or acceptance
 criteria. Ask the user when those details affect the plan.
@@ -271,9 +297,11 @@ Actions` table summarizes the actions available across the plan.
 
 The plan-level `Next Actions` table contains every `in-progress` task and every
 `not-started` task whose dependencies are complete. It also contains every
-`ready-for-review` task, every `needs-fix` task, and every `blocked` task whose
-next action describes resolving or waiting on its blocker. Use the literal
-`plan` as the task value when all tasks are complete but a plan-level completion
+`ready-for-review` task, every `ready-for-integration` task, every `needs-fix`
+task, and every `blocked` task whose next action describes resolving or waiting
+on its blocker. Integrations are serialized even when several tasks are ready.
+Use the literal `plan` as the task value when all tasks are complete but
+combined validation, final integration review, or another plan-level completion
 action remains. A completed plan has no next-action rows.
 
 The plan and task `Blockers` sections list unresolved blockers only. Use
@@ -284,21 +312,29 @@ Keep exactly one plan-level `Task Status` row for every task. Its status must
 match the task progress frontmatter, and its result-or-blocker cell must briefly
 explain the current state.
 
-Before starting a task, use its approved `planned_worktree` and
-`planned_branch` to create or resolve the isolated checkout, then record the
-actual worktree and branch in task progress. Refresh `head_commit` and
-`uncommitted_changes` at every meaningful checkpoint and before a handoff. When
-two or more tasks run in parallel, each must use a distinct Git worktree and
-branch; parallel agents must not edit the same checkout.
+The orchestrator owns the plan integration worktree. Record its actual
+worktree, branch, head commit, and uncommitted-change state in plan progress,
+and refresh them after every integration and before plan-level handoff or
+review.
+
+Before starting a task, confirm its dependencies are completed, use the current
+plan integration head as its base, and use its approved `planned_worktree` and
+`planned_branch` to create or resolve the isolated checkout. Record the actual
+worktree and branch in task progress. Refresh `head_commit` and
+`uncommitted_changes` at every meaningful checkpoint and before a handoff.
+Record `integrated_commit` only after the reviewed task result is present on
+the plan integration branch. When two or more tasks run in parallel, each must
+use a distinct Git worktree and branch; parallel agents must not edit the same
+checkout or the integration worktree.
 
 Update the task-level `PROGRESS.md` after a meaningful checkpoint and before a
 handoff. Keep it concise and make the next action specific enough that another
 agent can resume without reconstructing prior work.
 
 Set `latest_handoff` in plan or task progress whenever a new transition is
-accepted. Set `latest_review` in task progress whenever a reviewer result is
-persisted. Both values use paths relative to the managed project and must point
-to existing artifacts.
+accepted. Set `latest_review` in task progress for task reviews and in plan
+progress for integration reviews. Both values use paths relative to the managed
+project and must point to existing artifacts.
 
 ## Reviewing a Task
 
@@ -309,8 +345,9 @@ checkpoints named in the approved task or when new evidence makes one necessary.
 The reviewer returns complete review and handoff payloads. Because the reviewer
 is sandboxed read-only, the orchestrator writes them under `reviews/` and the
 task's `handoffs/` directory. A clean checkpoint review leaves the task
-`in-progress`. A clean final review completes it. Actionable findings set it to
-`needs-fix` and require a fresh implementer session followed by another review.
+`in-progress`. A clean final review makes it `ready-for-integration`.
+Actionable findings set it to `needs-fix` and require a fresh implementer
+session followed by another review.
 
 When implementation is ready:
 
@@ -320,9 +357,19 @@ When implementation is ready:
 3. Run the final review. If it has findings, persist the review-to-fix handoff,
    set `needs-fix`, and run another implementation and review cycle.
 4. After a clean review, mark every satisfied or explicitly accepted acceptance
-   criterion as checked and set the task to `completed`.
-5. Record the review and validation in task progress. The orchestrator updates
-   plan progress and selects the next actionable task or tasks.
+   criterion as checked and set the task to `ready-for-integration`.
+5. Prepare a no-commit merge of the exact reviewed task head into the plan
+   integration branch and run task validation against the combined tree. If it
+   conflicts or validation fails, abort the merge, record a task-local
+   correction handoff, uncheck any criterion no longer satisfied, return the
+   task to `in-progress`, and use a fresh implementer to reconcile and
+   re-review it.
+6. Commit a passing integration, record the plan-branch commit in
+   `integrated_commit`, and set the task to `completed`. Refresh plan
+   integration progress and clear any stale plan-level `latest_review`.
+7. Record the review, integration, and validation in task progress. The
+   orchestrator updates plan progress and selects the next actionable task or
+   tasks.
 
 ## Architecture Decisions
 
@@ -333,13 +380,29 @@ choice to the orchestrator and user instead of deciding it silently.
 
 ## Completing a Plan
 
-A plan is complete when all required tasks and the plan's completion criteria
-are satisfied and no unresolved blocker prevents completion.
+A plan is complete when all required tasks are integrated and complete, the
+plan's completion criteria and combined validation are satisfied on the plan
+integration branch, a final review of that exact integration head is clean,
+and no unresolved blocker prevents completion.
+
+After every task completes, run the agreed combined validation in the plan
+integration worktree. Then review the exact branch and head against the plan's
+scope and completion criteria. Store the review as
+`reviews/<plan-id>-integration-review-<NNN>.md`, store its reviewer handoff in
+the plan-level `handoffs/` folder, and record both artifacts in plan progress.
+
+An actionable integration review keeps the plan `in-progress`. Add the next
+numbered correction task after resolving any user decision the findings
+require, then run that task through implementation, review, and integration. A
+blocked review records the limitation as a blocker and one exact resolution
+action.
 
 Mark every satisfied plan completion criterion as checked. When every task is
-complete but any plan criterion is still unchecked, keep the plan
-`in-progress` and record a `plan` next action. Set the plan to `completed` only
-after every criterion is checked.
+complete but any plan criterion, combined validation, or final integration
+review remains unfinished, keep the plan `in-progress` and record a `plan` next
+action. Set the plan to `completed` only when `latest_review` is a clean plan
+integration review whose worktree, branch, and head match the current plan
+progress.
 
 Record the final outcome in the plan-level `PROGRESS.md`, then move the entire
 plan folder to `plans/done/<plan-name>/`. Keep the plan and task files together
@@ -349,6 +412,12 @@ available.
 Do not complete a plan until every required final review is clean and every ADR
 required by the approved plan exists and reflects the accepted decision.
 Reports are optional unless the user or approved plan requires one.
+
+Completion leaves the reviewed plan integration branch ready for delivery. It
+does not authorize merging that branch into `delivery_branch`, pushing it, or
+removing any task or integration worktree or branch. Follow an explicit target
+repository policy or obtain separate user instruction for delivery and
+cleanup.
 
 ## Validation
 

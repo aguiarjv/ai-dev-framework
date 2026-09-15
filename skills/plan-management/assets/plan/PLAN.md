@@ -6,6 +6,9 @@ updated: "<YYYY-MM-DDTHH:MM:SSZ>"
 worktree: "worktrees/<worktree-folder>"
 branch: "<branch-name>"
 baseline_commit: "<full-commit-sha>"
+planned_integration_worktree: "worktrees/<plan-name>-integration"
+planned_integration_branch: "plan/<plan-name>"
+delivery_branch: "<delivery-branch-name>"
 approved_at: "<YYYY-MM-DDTHH:MM:SSZ>"
 ---
 
@@ -32,6 +35,13 @@ approved_at: "<YYYY-MM-DDTHH:MM:SSZ>"
 ## Approach
 
 <Describe the agreed implementation or investigation approach.>
+
+## Integration
+
+- Task integration: Transactionally merge each cleanly reviewed task branch into the plan integration branch before completing the task.
+- Integration order: <Rule for selecting among simultaneously ready task branches.>
+- Integration validation: <Commands or checks required on the combined plan branch.>
+- Delivery: <Target-repository policy or explicit approval required to merge the plan branch into the delivery branch.>
 
 ## Dependencies
 

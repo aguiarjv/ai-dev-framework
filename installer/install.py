@@ -42,16 +42,20 @@ ROLE_MARKERS = {
     "implementer": (
         "assigned task or correction pass",
         "ready-for-review",
+        "ready-for-integration",
         "handoff",
     ),
     "orchestrator": (
         "user communication",
         "plan-management skill",
+        "integration branch",
+        "delivery branch",
         "plan-level",
     ),
     "reviewer": (
         "actionable finding",
         "acceptance-criteria coverage",
+        "plan integration",
         "two complete payloads",
     ),
 }

@@ -25,9 +25,9 @@ Use a three-digit sequence local to each `handoffs/` directory. Append a new
 file for every transition; never replace an earlier handoff. Keep the handoff
 identifier equal to its filename without `.md`.
 
-Plan-level handoffs capture exploration or coordination that applies to the
-whole plan. Task-level handoffs capture implementation checkpoints, review
-results, correction requests, and task completion.
+Plan-level handoffs capture exploration, integration reviews, or coordination
+that applies to the whole plan. Task-level handoffs capture implementation
+checkpoints, task review results, correction requests, and task integration.
 
 ## Required Contents
 

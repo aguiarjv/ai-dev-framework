@@ -26,6 +26,8 @@ checkout, another managed project, `docs/`, or `reports/`.
 For plan-task reviews, use
 `<plan-id>-<task-id>-review-<NNN>.md`, where the sequence is local to that plan
 and task. Append a new review for every attempt; never replace earlier evidence.
+For a final plan integration review, use
+`<plan-id>-integration-review-<NNN>.md`, with a sequence local to that plan.
 
 Before writing, check whether the target path already exists. Do not overwrite
 or repurpose an existing review unless the user explicitly asks to update that
@@ -122,14 +124,16 @@ question instead of overstating the conclusion.
 1. Resolve the review target, scope, criteria, audience, and intended output.
 2. Capture the target baseline before drawing conclusions.
 3. Read applicable project instructions, plans, tasks, documentation, and
-   installed workspace guides.
+   installed workspace guides. A plan integration review includes every
+   completed task's final review and integrated commit.
 4. Inspect the target and enough surrounding context to evaluate its contracts
    and effects.
 5. Run safe, relevant checks needed to support or disprove suspected findings.
 6. Return a complete review payload and handoff payload to the orchestrator.
 7. The orchestrator writes the review under
-   `projects/<project-name>/reviews/` and the handoff under the task's
-   `handoffs/` directory.
+   `projects/<project-name>/reviews/`. It writes the handoff under the task's
+   `handoffs/` directory for task reviews or the plan-level `handoffs/`
+   directory for plan integration reviews.
 8. Recheck every finding against its cited evidence and clearly state any
    unreviewed areas or unresolved limitations.
 
@@ -140,16 +144,24 @@ Reviewers remain sandboxed read-only. They do not write review, handoff, task,
 or plan files. The orchestrator persists their payloads without weakening
 findings or uncertainty.
 
-For a final task review, `clean` permits the orchestrator to complete the task,
+For a final task review, `clean` moves the task to `ready-for-integration`,
 `actionable-findings` moves it to `needs-fix`, and `blocked` records a blocker.
 A clean intermediate checkpoint review leaves the task `in-progress`.
 
+A plan integration review targets the clean integration worktree and exact head
+recorded in plan progress after every task is integrated and combined
+validation has passed. A clean result permits plan completion when the other
+completion conditions are satisfied. Actionable findings keep the plan
+`in-progress` and require a correction task; a blocked result records the
+limitation and resolution action. Any later integration invalidates the prior
+plan review and requires a new review of the new head.
+
 ## Updating a Review
 
-Treat every plan-task review as an immutable record of a specific target state.
-When verifying fixes, create the next numbered review, reference the earlier
-finding IDs, and record whether each finding is fixed, still open, rejected, or
-waived. Do not edit or replace the earlier review.
+Treat every plan-task and plan-integration review as an immutable record of a
+specific target state. When verifying fixes, create the next numbered review,
+reference the earlier finding IDs, and record whether each finding is fixed,
+still open, rejected, or waived. Do not edit or replace the earlier review.
 
 For a standalone review that is intentionally maintained over time, update the
 existing artifact only when the user explicitly requests that behavior. Keep

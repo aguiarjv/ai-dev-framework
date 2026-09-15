@@ -71,22 +71,31 @@ For work that crosses the direct-execution threshold:
    database explorer. Exploration is read-only.
 3. Consolidate the returned evidence, propose the plan and task breakdown, and
    obtain the user's approval.
-4. Create plan and task artifacts. Record planned worktree and branch names for
-   every task.
-5. Create worktrees only for tasks whose dependencies are complete. The first
-   worktrees are created after plan approval; dependent worktrees are created
-   when those tasks become actionable.
+4. Create plan and task artifacts. Record a plan integration worktree and
+   branch, delivery branch, and planned worktree and branch names for every
+   task.
+5. After plan approval, create the integration worktree from the approved
+   baseline. Create task worktrees from the current integration head only when
+   their dependencies are integrated and complete.
 6. Spawn one implementer per actionable task. Parallel implementers use
    separate worktrees and branches.
 7. At a planned high-risk checkpoint, or when implementation for a task is
    ready, require an implementation handoff and spawn a reviewer.
-8. If the review is clean, complete the checkpoint or task. If it has
-   actionable findings, set the task to `needs-fix`, persist a review-to-fix
-   handoff, and spawn a fresh implementer to correct it.
-9. Repeat implementation and review until the task passes or becomes blocked.
-10. Create or update accepted ADRs required by the plan under `docs/adrs/`.
-11. Complete and archive the plan only after every task, review gate, plan
-    criterion, and required ADR is complete.
+8. If a final task review is clean, set the task to `ready-for-integration`.
+   If it has actionable findings, set the task to `needs-fix`, persist a
+   review-to-fix handoff, and spawn a fresh implementer to correct it.
+9. Serialize cleanly reviewed task merges into the plan integration branch.
+   Complete a task only after its integrated validation passes and its
+   integration commit is recorded. Reconcile merge conflicts in a fresh task
+   implementation and review cycle, not directly in the integration worktree.
+10. Repeat implementation, review, and integration until every task passes or
+    the plan becomes blocked.
+11. Create or update accepted ADRs required by the plan under `docs/adrs/`.
+12. Run combined validation and a final read-only review of the exact plan
+    integration head.
+13. Complete and archive the plan only after every task, review gate, plan
+    criterion, required ADR, combined validation, and integration review is
+    complete. Delivery to the target branch remains separately authorized.
 
 Reports are optional. Create one under `reports/` only when the user requests a
 report or the plan explicitly requires one.
@@ -121,9 +130,10 @@ state concurrently.
 
 ## Review Cadence
 
-Every implementation task requires a final review. Intermediate reviews occur
-only at checkpoints identified in the approved task or when newly discovered
-risk makes a checkpoint necessary. Do not review every routine progress update;
+Every implementation task requires a final review, and every plan requires a
+final review of its combined integration head. Intermediate reviews occur only
+at checkpoints identified in the approved task or when newly discovered risk
+makes a checkpoint necessary. Do not review every routine progress update;
 that increases coordination cost without improving the review boundary.
 
 ## Unavailable Agents
