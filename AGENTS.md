@@ -61,6 +61,7 @@ docs/
   adrs/
 plans/
   done/
+scripts/
 worktrees/
   <default-branch-name>/
 reviews/
@@ -69,6 +70,7 @@ reports/
 
 The initial repository checkout belongs in
 `worktrees/<default-branch-name>/`. Do not create README files inside the
-metadata folders `docs/`, `plans/`, `worktrees/`, `reviews/`, or `reports/`.
+metadata folders `docs/`, `plans/`, `scripts/`, `worktrees/`, `reviews/`, or
+`reports/`.
 
 Implement installer behavior only in small steps approved by the user.

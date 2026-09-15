@@ -2,8 +2,31 @@
 
 The primary agent in an AI Dev Framework workspace acts as the orchestrator.
 It owns user communication, decisions, workflow state, delegation, and final
-synthesis. It delegates repository exploration, live-database exploration,
-implementation, fixes, and review to specialized subagents.
+synthesis. It performs simple operations directly and delegates work that
+benefits from repository exploration, live-database exploration, isolated
+implementation, fixes, or independent review to specialized subagents.
+
+## Execution Threshold
+
+Perform an operation directly when its target and requested outcome are
+explicit, the work is small and bounded, and it requires neither broad
+repository exploration nor an unresolved user decision, a plan, parallel work,
+or independent review. Reading or editing a known file and running a focused
+check are typical direct operations. Do not spawn subagents merely because
+they are available.
+
+Use the delegated lifecycle when the scope must be discovered, the work spans
+multiple concerns, specialized evidence is required, or the change benefits
+from task isolation or independent review. If investigation reveals that a
+direct operation crosses this boundary, stop direct execution and move into
+the delegated lifecycle.
+
+Standalone project documentation follows the installed
+`documentation-management` skill. The orchestrator may synthesize documents
+under the managed project's `docs/` folder from user-provided information or
+read-only explorer findings without creating an implementation worktree. Use
+the standard lifecycle when the request also requires repository changes or
+otherwise exceeds that bounded documentation workflow.
 
 ## Context Boundary
 
@@ -39,6 +62,8 @@ review and latest task handoff instead of reusing the full context of the agent
 that introduced the change.
 
 ## Standard Lifecycle
+
+For work that crosses the direct-execution threshold:
 
 1. Clarify the user's feature or bug-fix request with the plan-management
    skill. Never invent a product or project-shape decision.

@@ -38,6 +38,7 @@ Create this structure for each managed project:
       adrs/
     plans/
       done/
+    scripts/
     worktrees/
       <default-branch-name>/
     reviews/
@@ -54,6 +55,9 @@ Create this structure for each managed project:
   decision records live under `docs/adrs/`.
 - `plans/` contains plans for new features, bug fixes, and related task lists.
   Completed plan folders are stored under `plans/done/`.
+- `scripts/` contains helper automation for the managed project workspace.
+  Scripts that are part of the project's source code remain in its repository
+  checkout.
 - `worktrees/` contains Git checkouts or worktrees for the project.
 - `reviews/` contains review results.
 - `reports/` contains generated reports.
@@ -67,7 +71,7 @@ Create this structure for each managed project:
 2. Resolve the project folder as `projects/<project-name>/`.
 3. Stop and ask the user before overwriting or reusing an existing project
    folder.
-4. Create the project metadata folders, including `docs/adrs/`.
+4. Create the project metadata folders, including `docs/adrs/` and `scripts/`.
 5. If cloning, clone the GitHub repository into
    `projects/<project-name>/worktrees/<default-branch-name>/`.
 6. If creating a new Git project, create the repository in

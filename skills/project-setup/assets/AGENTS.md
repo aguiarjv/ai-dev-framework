@@ -10,6 +10,7 @@ as the orchestrator.
 - Project documentation: `docs/`
 - Architecture decisions: `docs/adrs/`
 - Active and completed plans: `plans/`
+- Project workspace scripts: `scripts/`
 - Review artifacts: `reviews/`
 - Optional reports: `reports/`
 
@@ -17,8 +18,8 @@ as the orchestrator.
 
 - Read the instructions inside the applicable repository checkout before
   assigning or changing repository work.
-- Keep plans, handoffs, reviews, reports, and project documentation in this
-  managed project, not inside another project.
+- Keep plans, handoffs, reviews, reports, project documentation, and workspace
+  helper scripts in this managed project, not inside another project.
 - Use a separate worktree and branch for every active implementation task.
 - Treat task `PROGRESS.md` as the task-state source of truth and plan
   `PROGRESS.md` as the orchestrator-owned summary.

@@ -64,6 +64,7 @@ projects/
       adrs/
     plans/
       done/
+    scripts/
     worktrees/
       <default-branch-name>/
     reviews/

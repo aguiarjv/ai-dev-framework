@@ -24,6 +24,7 @@ projects/
       adrs/
     plans/
       done/
+    scripts/
     worktrees/
       <default-branch-name>/
     reviews/
@@ -56,6 +57,9 @@ Each folder under `projects/` represents one managed project:
   under `docs/adrs/`; other documentation subfolders are created when needed.
 - `plans/` contains plans for features and bug fixes, including related tasks.
   Completed plan folders are stored under `plans/done/`.
+- `scripts/` contains helper automation for the managed project workspace.
+  Scripts that are part of the project's source code remain in its repository
+  checkout.
 - `worktrees/` contains Git checkouts and worktrees. The initial repository
   checkout is stored under `worktrees/<default-branch-name>/`.
 - `reviews/` contains evidence-backed review results.

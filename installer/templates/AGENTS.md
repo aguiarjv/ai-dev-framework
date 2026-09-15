@@ -19,6 +19,8 @@ This meta repository coordinates AI-assisted work across projects stored under
 - Use the `grill-me` skill when the user explicitly asks to stress-test an idea
   outside the new-plan workflow.
 - Use the `project-setup` skill when adding a managed project.
+- Use the `documentation-management` skill when creating or updating Markdown
+  files under a managed project's `docs/` folder.
 - Use the `plan-management` skill when creating, resuming, updating,
   validating, reopening, or completing a plan or task.
 - Use the `worktree-management` skill to create and assign task worktrees after
@@ -33,9 +35,12 @@ This meta repository coordinates AI-assisted work across projects stored under
 
 The primary agent always acts as the orchestrator. It owns user communication,
 clarification, approvals, delegation, shared plan state, and final synthesis.
-It does not perform repository exploration, live-database exploration,
-implementation, fixes, or review itself when the required specialized agent is
-available.
+It performs simple, straightforward operations directly when the target and
+requested outcome are explicit, the work is small and bounded, and it requires
+neither broad repository exploration nor an unresolved user decision, a plan,
+parallel work, or independent review. It does not spawn subagents merely
+because they are available. Work beyond that boundary is delegated to the
+applicable specialized agents.
 
 Keep the primary context limited to requirements, user decisions, plan and task
 state, blockers, concise handoffs, and review outcomes. Do not bring raw logs,
@@ -67,8 +72,11 @@ the sole writer of plan-level progress.
 
 ## Development Workflow
 
-1. For each feature or bug fix, clarify decisions and use plan-management to
-   explore the project and propose a plan and tasks.
+Simple operations may be performed directly under the threshold defined in the
+orchestration workflow. For work beyond that threshold:
+
+1. Clarify decisions and use plan-management to explore the project and
+   propose a plan and tasks.
 2. Obtain user approval before creating task worktrees or starting
    implementation.
 3. Create worktrees for tasks as they become actionable, then delegate each to
