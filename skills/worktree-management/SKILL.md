@@ -12,17 +12,18 @@ plan.
 ## Plan Integration Assignment
 
 Record `planned_integration_worktree`, `planned_integration_branch`, and
-`delivery_branch` in `PLAN.md`. Use `worktrees/<plan-id>-integration` and
-`plan/<plan-id>` unless the target repository has an explicit naming
-convention. Plan approval authorizes creating this isolated branch and merging
-cleanly reviewed task branches into it; it does not authorize delivery to the
-target branch.
+`delivery_branch` in `PLAN.md`. The integration worktree path must be
+`worktrees/<plan-id>/plan-integration`. Use `plan/<plan-id>` for the branch
+unless the target repository has an explicit branch-naming convention. Plan
+approval authorizes creating this isolated branch and merging cleanly reviewed
+task branches into it; it does not authorize delivery to the target branch.
 
 ## Plan Assignments
 
 Record a unique `planned_worktree` and `planned_branch` in every `TASK.md`.
-Use `worktrees/<plan-id>-<task-id>` and `task/<plan-id>/<task-id>` unless the
-target repository has an explicit naming convention.
+The worktree path must be `worktrees/<plan-id>/<task-id>`. Use
+`task/<plan-id>/<task-id>` for the branch unless the target repository has an
+explicit branch-naming convention.
 
 Planning a path does not create it. Do not run worktree or branch creation
 before the user approves the plan.
@@ -30,9 +31,11 @@ before the user approves the plan.
 ## Create the Plan Integration Worktree
 
 1. Read the approved plan and target repository instructions.
-2. Confirm the planned path and branch do not exist and the recorded baseline
-   commit is still available.
-3. Run this non-interactive command from the source checkout:
+2. Confirm the plan's `worktrees/<plan-id>/` grouping folder, planned worktree
+   path, and branch do not exist and the recorded baseline commit is still
+   available.
+3. Create the `worktrees/<plan-id>/` grouping folder, then run this
+   non-interactive command from the source checkout:
 
    ```text
    git worktree add -b <integration-branch> <integration-path> <baseline-commit>
@@ -50,8 +53,9 @@ delete, or overwrite it.
    instructions.
 2. Confirm every dependency is integrated and completed, and resolve the
    current plan integration head as the base ref.
-3. Resolve the planned path relative to the managed project and confirm the
-   path does not exist.
+3. Confirm the plan's `worktrees/<plan-id>/` grouping folder contains the
+   recorded plan integration worktree, then resolve the planned task path
+   relative to the managed project and confirm that task path does not exist.
 4. Confirm the planned branch does not exist locally or in another worktree.
 5. Run a non-interactive `git worktree add -b <branch> <path> <base-ref>` from
    the repository checkout.

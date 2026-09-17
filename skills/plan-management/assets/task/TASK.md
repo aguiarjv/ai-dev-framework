@@ -5,7 +5,7 @@ title: "<task-title>"
 created: "<YYYY-MM-DD>"
 updated: "<YYYY-MM-DDTHH:MM:SSZ>"
 depends_on: []
-planned_worktree: "worktrees/<plan-name>-<task-id>"
+planned_worktree: "worktrees/<plan-name>/<task-id>"
 planned_branch: "task/<plan-name>/<task-id>"
 review_required: true
 ---

@@ -9,7 +9,7 @@ checkout recorded for their task.
 
 During planning, record these intended values in each `TASK.md`:
 
-- `planned_worktree`: `worktrees/<plan-id>-<task-id>`
+- `planned_worktree`: `worktrees/<plan-id>/<task-id>`
 - `planned_branch`: `task/<plan-id>/<task-id>`
 
 Both paths are relative to the managed project or repository conventions shown
@@ -18,19 +18,22 @@ ask the user before selecting a different name or reusing the existing object.
 
 Record these values in `PLAN.md`:
 
-- `planned_integration_worktree`: `worktrees/<plan-id>-integration`
+- `planned_integration_worktree`: `worktrees/<plan-id>/plan-integration`
 - `planned_integration_branch`: `plan/<plan-id>`
 - `delivery_branch`: The eventual destination for the combined result.
 
-The plan integration branch represents the complete plan. The delivery branch
-is metadata only; recording it does not authorize a merge or push.
+The folder `worktrees/<plan-id>/` groups the plan integration worktree and all
+of that plan's task worktrees. The initial repository checkout stays at its
+existing path. The plan integration branch represents the complete plan. The
+delivery branch is metadata only; recording it does not authorize a merge or
+push.
 
 ## Creation Timing
 
 Do not create integration or task worktrees before the user approves the plan.
-After approval, create the plan integration worktree from the recorded baseline
-commit. Record its actual worktree, branch, head commit, and
-uncommitted-change state in plan progress.
+After approval, create `worktrees/<plan-id>/`, then create the plan integration
+worktree inside it from the recorded baseline commit. Record its actual
+worktree, branch, head commit, and uncommitted-change state in plan progress.
 
 Create worktrees for immediately actionable tasks from the current plan
 integration head. Create a dependent task's worktree only after its

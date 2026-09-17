@@ -79,7 +79,8 @@ creation:
 - `approved_at`: The ISO 8601 UTC time when the user approved the proposed plan
   and task breakdown.
 - `planned_integration_worktree`: The isolated checkout owned by the
-  orchestrator for combining reviewed task branches.
+  orchestrator for combining reviewed task branches. Use
+  `worktrees/<plan-id>/plan-integration`.
 - `planned_integration_branch`: The branch that represents the combined plan
   result, normally `plan/<plan-id>`.
 - `delivery_branch`: The eventual target branch. Recording it does not
@@ -87,7 +88,8 @@ creation:
 
 Each task definition records its intended isolated assignment:
 
-- `planned_worktree`: A path below `worktrees/` relative to the managed project.
+- `planned_worktree`: The path `worktrees/<plan-id>/<task-id>`, relative to the
+  managed project.
 - `planned_branch`: The branch intended for the task.
 - `review_required`: `true` for the required final implementation review.
 
@@ -261,10 +263,11 @@ how to proceed instead of silently skipping exploration.
 2. Resolve the exploration baseline, launch explorer subagents, and consolidate
    the current-state findings, probable related paths, relevant project
    documentation and workspace guides, supporting evidence, and open questions.
-3. Record the plan integration worktree and branch, integration order, delivery
-   branch, combined validation, final integration review, and planned worktree
-   and branch names for every task. Present the complete plan and task breakdown
-   to the user.
+3. Record `worktrees/<plan-id>/plan-integration` as the plan integration
+   worktree and `worktrees/<plan-id>/<task-id>` as each task worktree. Also
+   record their branches, integration order, delivery branch, combined
+   validation, and final integration review. Present the complete plan and task
+   breakdown to the user.
 4. After user approval, create `plans/<plan-name>/` with `PLAN.md`,
    `PROGRESS.md`, `handoffs/`, and `tasks/`.
 5. Create each numbered task folder with `TASK.md`, `PROGRESS.md`, and

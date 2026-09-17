@@ -95,7 +95,9 @@ orchestration workflow. For work beyond that threshold:
 ## Working Rules
 
 - Work in the applicable checkout under
-  `projects/<project-name>/worktrees/<worktree-name>/`.
+  `projects/<project-name>/worktrees/<default-branch-name>/` for the initial
+  checkout or `projects/<project-name>/worktrees/<plan-id>/<worktree-name>/`
+  for plan integration and task worktrees.
 - Read the managed project's workspace instructions and any instructions inside
   its Git checkout before assigning or changing project work.
 - Store project coordination artifacts in that project's `docs/`, `plans/`,

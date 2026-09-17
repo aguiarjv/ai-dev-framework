@@ -95,6 +95,21 @@ equal to its folder name. Keep the plan identifier equal to its folder name.
 Use handoff files as immutable transition records; `PROGRESS.md` remains the
 source of truth for current state.
 
+Group every plan-managed worktree under a folder named for the plan:
+
+```text
+worktrees/
+  <plan-name>/
+    plan-integration/
+    001-<task-name>/
+    002-<task-name>/
+```
+
+Set `planned_integration_worktree` to
+`worktrees/<plan-name>/plan-integration` and each task's `planned_worktree` to
+`worktrees/<plan-name>/<task-id>`. The initial repository checkout remains at
+its existing path and is not moved into the plan folder.
+
 ## Templates
 
 Use these files as the canonical starting points:
@@ -265,10 +280,11 @@ to proceed instead of silently skipping exploration.
    user until every required decision is settled.
 5. Summarize the resulting plan and task breakdown and obtain the user's
    confirmation of the shared understanding.
-6. Record a plan integration worktree and branch, integration order, delivery
-   branch, combined validation, and final integration review. Record a planned
-   worktree, branch, final review, intermediate high-risk checkpoints, and ADR
-   decision for every task.
+6. Record the plan integration worktree as
+   `worktrees/<plan-name>/plan-integration`, plus its branch, integration order,
+   delivery branch, combined validation, and final integration review. Record
+   every task worktree as `worktrees/<plan-name>/<task-id>`, plus its branch,
+   final review, intermediate high-risk checkpoints, and ADR decision.
 7. Create the plan folder, plan-level `handoffs/`, `tasks/`, `PLAN.md`, and the
    plan-level `PROGRESS.md`.
 8. Fill the plan templates with the exploration baseline, approval time,

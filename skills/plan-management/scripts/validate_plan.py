@@ -440,6 +440,16 @@ class PlanValidator:
                 f"{key} must be a normalized path below worktrees/",
             )
 
+    def validate_expected_worktree(
+        self,
+        document: MarkdownDocument,
+        key: str,
+        expected: str,
+    ) -> None:
+        value = document.frontmatter.get(key)
+        if isinstance(value, str) and value != expected:
+            self.error(document.path, f"{key} must be {expected!r}")
+
     def validate_artifact_path(
         self,
         document: MarkdownDocument,
@@ -610,6 +620,11 @@ class PlanValidator:
             allow_null=False,
             key="planned_integration_worktree",
         )
+        self.validate_expected_worktree(
+            document,
+            "planned_integration_worktree",
+            f"worktrees/{plan_id}/plan-integration",
+        )
         self.validate_commit(document, "baseline_commit")
         if document.frontmatter.get("id") != plan_id:
             self.error(document.path, f"id must match plan folder name {plan_id!r}")
@@ -699,6 +714,11 @@ class PlanValidator:
         self.validate_date(document, "created")
         self.validate_timestamp(document)
         self.validate_worktree(document, allow_null=False, key="planned_worktree")
+        self.validate_expected_worktree(
+            document,
+            "planned_worktree",
+            f"worktrees/{plan_id}/{task_id}",
+        )
         if document.frontmatter.get("id") != task_id:
             self.error(document.path, f"id must match task folder name {task_id!r}")
         if document.frontmatter.get("plan") != plan_id:
@@ -1199,6 +1219,18 @@ class PlanValidator:
                 self.error(
                     plan_progress.path,
                     f"{actual_key} must match {planned_key} {planned_value!r}",
+                )
+
+        for task_id, definition in definitions.items():
+            progress = task_progress.get(task_id)
+            if progress is None:
+                continue
+            planned_worktree = definition.frontmatter.get("planned_worktree")
+            actual_worktree = progress.frontmatter.get("worktree")
+            if actual_worktree is not None and actual_worktree != planned_worktree:
+                self.error(
+                    progress.path,
+                    f"worktree must match planned_worktree {planned_worktree!r}",
                 )
 
         integration_assignment_recorded = (

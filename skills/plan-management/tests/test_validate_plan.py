@@ -92,7 +92,7 @@ updated: "2026-09-13T12:00:00Z"
 worktree: "worktrees/main"
 branch: "main"
 baseline_commit: "{'a' * 40}"
-planned_integration_worktree: "worktrees/demo-plan-integration"
+planned_integration_worktree: "worktrees/demo-plan/plan-integration"
 planned_integration_branch: "plan/demo-plan"
 delivery_branch: "main"
 approved_at: "2026-09-13T12:00:00Z"
@@ -208,7 +208,7 @@ Implement before testing.
             status != "not-started" for status in statuses.values()
         ) or plan_status != "not-started"
         integration_worktree = (
-            '"worktrees/demo-plan-integration"' if integration_created else "null"
+            '"worktrees/demo-plan/plan-integration"' if integration_created else "null"
         )
         integration_branch = '"plan/demo-plan"' if integration_created else "null"
         integration_head = f'"{"c" * 40}"' if integration_created else "null"
@@ -306,7 +306,7 @@ title: "{task_id}"
 created: "2026-09-13"
 updated: "2026-09-13T12:00:00Z"
 depends_on: {json.dumps(dependencies[task_id])}
-planned_worktree: "worktrees/demo-plan-{task_id}"
+planned_worktree: "worktrees/demo-plan/{task_id}"
 planned_branch: "task/demo-plan/{task_id}"
 review_required: true
 ---
@@ -353,7 +353,10 @@ Complete {task_id}.
             else:
                 assigned_worktree, assigned_branch = assignments.get(
                     task_id,
-                    (f"worktrees/{task_id}", f"task/{task_id}"),
+                    (
+                        f"worktrees/demo-plan/{task_id}",
+                        f"task/demo-plan/{task_id}",
+                    ),
                 )
                 worktree = f'"{assigned_worktree}"'
                 branch = f'"{assigned_branch}"'
@@ -476,8 +479,8 @@ plan: "demo-plan"
 task: "{task_id}"
 review_kind: "task-final"
 status: {status}
-worktree: "worktrees/{task_id}"
-branch: "task/{task_id}"
+worktree: "worktrees/demo-plan/{task_id}"
+branch: "task/demo-plan/{task_id}"
 head_commit: "{'b' * 40}"
 uncommitted_changes: false
 ---
@@ -494,7 +497,7 @@ plan: "demo-plan"
 task: null
 review_kind: "plan-integration"
 status: {status}
-worktree: "worktrees/demo-plan-integration"
+worktree: "worktrees/demo-plan/plan-integration"
 branch: "plan/demo-plan"
 head_commit: "{'c' * 40}"
 uncommitted_changes: false
@@ -771,6 +774,66 @@ class PlanValidatorTests(unittest.TestCase):
             )
         )
 
+    def test_plan_integration_worktree_uses_plan_folder(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write()
+            plan_path = fixture.plan_dir / "PLAN.md"
+            content = plan_path.read_text(encoding="utf-8")
+            plan_path.write_text(
+                content.replace(
+                    "worktrees/demo-plan/plan-integration",
+                    "worktrees/demo-plan-integration",
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any(
+                "planned_integration_worktree must be "
+                "'worktrees/demo-plan/plan-integration'" in error
+                for error in errors
+            )
+        )
+
+    def test_task_worktree_uses_plan_folder(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write()
+            task_path = fixture.plan_dir / "tasks" / "001-build" / "TASK.md"
+            content = task_path.read_text(encoding="utf-8")
+            task_path.write_text(
+                content.replace(
+                    "worktrees/demo-plan/001-build",
+                    "worktrees/demo-plan-001-build",
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any(
+                "planned_worktree must be 'worktrees/demo-plan/001-build'" in error
+                for error in errors
+            )
+        )
+
+    def test_actual_task_worktree_matches_planned_path(self) -> None:
+        errors = self.run_fixture(
+            statuses={"001-build": "in-progress", "002-test": "not-started"},
+            plan_status="in-progress",
+            assignments={
+                "001-build": (
+                    "worktrees/demo-plan/unplanned",
+                    "task/demo-plan/001-build",
+                )
+            },
+        )
+        self.assertTrue(
+            any("worktree must match planned_worktree" in error for error in errors)
+        )
+
     def test_planned_assignments_must_be_unique(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             fixture = PlanFixture(Path(temporary))
@@ -778,8 +841,8 @@ class PlanValidatorTests(unittest.TestCase):
             task_path = fixture.plan_dir / "tasks" / "002-test" / "TASK.md"
             content = task_path.read_text(encoding="utf-8")
             content = content.replace(
-                "worktrees/demo-plan-002-test",
-                "worktrees/demo-plan-001-build",
+                "worktrees/demo-plan/002-test",
+                "worktrees/demo-plan/001-build",
             )
             task_path.write_text(content, encoding="utf-8")
             errors = fixture.errors()
@@ -794,8 +857,8 @@ class PlanValidatorTests(unittest.TestCase):
             content = task_path.read_text(encoding="utf-8")
             task_path.write_text(
                 content.replace(
-                    "worktrees/demo-plan-001-build",
-                    "worktrees/demo-plan-integration",
+                    "worktrees/demo-plan/001-build",
+                    "worktrees/demo-plan/plan-integration",
                 ),
                 encoding="utf-8",
             )
@@ -813,7 +876,7 @@ class PlanValidatorTests(unittest.TestCase):
             progress_path = fixture.plan_dir / "PROGRESS.md"
             content = progress_path.read_text(encoding="utf-8")
             content = content.replace(
-                'integration_worktree: "worktrees/demo-plan-integration"',
+                'integration_worktree: "worktrees/demo-plan/plan-integration"',
                 "integration_worktree: null",
             )
             content = content.replace(
@@ -1104,8 +1167,8 @@ class PlanValidatorTests(unittest.TestCase):
             plan_status="in-progress",
             dependencies={"001-build": [], "002-test": []},
             assignments={
-                "001-build": ("worktrees/shared", "task/shared"),
-                "002-test": ("worktrees/shared", "task/shared"),
+                "001-build": ("worktrees/demo-plan/shared", "task/shared"),
+                "002-test": ("worktrees/demo-plan/shared", "task/shared"),
             },
         )
         self.assertTrue(any("share worktree" in error for error in errors))
