@@ -26,3 +26,5 @@ workflows.
   record accepted decisions under project documentation.
 - [Database Exploration](database-exploration.md) defines safe read-only live
   database investigation.
+- [Commit Management](commit-management.md) defines the Conventional Commits
+  message standard for commits authored by users or framework agents.

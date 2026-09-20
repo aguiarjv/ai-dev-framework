@@ -16,6 +16,8 @@ This meta repository coordinates AI-assisted work across projects stored under
 - Follow `.agents/guides/report-management.md` for optional project reports.
 - Follow `.agents/guides/adr-management.md` for decisions under `docs/adrs/`.
 - Follow `.agents/guides/database-exploration.md` for live database inspection.
+- Follow `.agents/guides/commit-management.md` for every authored Git commit
+  message.
 - Use the `grill-me` skill when the user explicitly asks to stress-test an idea
   outside the new-plan workflow.
 - Use the `project-setup` skill when adding a managed project.
@@ -32,6 +34,8 @@ This meta repository coordinates AI-assisted work across projects stored under
   integration reviews.
 - Use the `adr-management` skill for architecture decisions.
 - Use the `database-exploration` skill for live database facts.
+- Use the `commit-management` skill whenever creating, amending, squashing,
+  merging, reverting, or proposing a Git commit.
 
 ## Primary Agent Role
 

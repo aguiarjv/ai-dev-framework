@@ -11,6 +11,9 @@ agents, guides, and skills that can be installed into other projects.
   decided them yet.
 - Keep framework content reusable across projects.
 - Do not add target-project-specific rules to reusable framework files.
+- Follow `guides/commit-management.md` and use the `commit-management` skill
+  whenever creating, amending, squashing, merging, reverting, or proposing a
+  Git commit.
 
 ## Repository Roles
 

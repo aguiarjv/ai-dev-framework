@@ -47,6 +47,19 @@ class SourceContractTests(unittest.TestCase):
             self.actions_by_path[claude_path].content,
         )
 
+    def test_commit_management_is_installed_and_required(self) -> None:
+        self.assertIn(".agents/guides/commit-management.md", self.actions_by_path)
+        self.assertIn(
+            ".agents/skills/commit-management/SKILL.md", self.actions_by_path
+        )
+        self.assertIn(
+            ".claude/skills/commit-management/SKILL.md", self.actions_by_path
+        )
+        workspace_instructions = self.actions_by_path["AGENTS.md"].content.decode(
+            "utf-8"
+        )
+        self.assertIn("commit-management", workspace_instructions)
+
     def test_claude_skill_guide_links_resolve_to_installed_guides(self) -> None:
         action_paths = set(self.actions_by_path)
         checked_links = 0
