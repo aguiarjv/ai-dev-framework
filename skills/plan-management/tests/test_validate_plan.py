@@ -25,7 +25,7 @@ class PlanFixture:
         self.plan_dir = root / "plans" / "demo-plan"
         self.plan_dir.mkdir(parents=True)
         (self.plan_dir / "handoffs").mkdir()
-        (root / "reviews").mkdir()
+        (root / "reviews" / "demo-plan").mkdir(parents=True)
 
     def write(
         self,
@@ -214,7 +214,7 @@ Implement before testing.
         integration_head = f'"{"c" * 40}"' if integration_created else "null"
         integration_uncommitted = "false" if integration_created else "null"
         latest_plan_review = (
-            '"reviews/demo-plan-integration-review-001.md"'
+            '"reviews/demo-plan/demo-plan-integration-review-001.md"'
             if include_integration_review
             else "null"
         )
@@ -376,7 +376,9 @@ Complete {task_id}.
                     f'"plans/demo-plan/tasks/{task_id}/handoffs/'
                     '002-reviewer-to-implementer.md"'
                 )
-                latest_review = f'"reviews/demo-plan-{task_id}-review-001.md"'
+                latest_review = (
+                    f'"reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
+                )
                 review_result = "Actionable findings."
                 self._write_review(task_id, "actionable-findings")
             elif status == "ready-for-integration":
@@ -384,7 +386,9 @@ Complete {task_id}.
                     f'"plans/demo-plan/tasks/{task_id}/handoffs/'
                     '002-reviewer-to-orchestrator.md"'
                 )
-                latest_review = f'"reviews/demo-plan-{task_id}-review-001.md"'
+                latest_review = (
+                    f'"reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
+                )
                 review_result = "Clean; awaiting integration."
                 self._write_review(task_id, "clean")
             elif status == "completed":
@@ -392,7 +396,9 @@ Complete {task_id}.
                     f'"plans/demo-plan/tasks/{task_id}/handoffs/'
                     '002-reviewer-to-orchestrator.md"'
                 )
-                latest_review = f'"reviews/demo-plan-{task_id}-review-001.md"'
+                latest_review = (
+                    f'"reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
+                )
                 review_result = "Clean."
                 self._write_review(task_id, "clean")
             blocker = task_blockers.get(
@@ -473,7 +479,10 @@ Current task state.
 
     def _write_review(self, task_id: str, status: str) -> None:
         self._write(
-            self.project_root / "reviews" / f"demo-plan-{task_id}-review-001.md",
+            self.project_root
+            / "reviews"
+            / "demo-plan"
+            / f"demo-plan-{task_id}-review-001.md",
             f"""---
 plan: "demo-plan"
 task: "{task_id}"
@@ -491,7 +500,10 @@ uncommitted_changes: false
 
     def _write_plan_review(self, status: str) -> None:
         self._write(
-            self.project_root / "reviews" / "demo-plan-integration-review-001.md",
+            self.project_root
+            / "reviews"
+            / "demo-plan"
+            / "demo-plan-integration-review-001.md",
             f"""---
 plan: "demo-plan"
 task: null
@@ -628,7 +640,12 @@ class PlanValidatorTests(unittest.TestCase):
                 },
                 plan_status="in-progress",
             )
-            review_path = fixture.project_root / "reviews" / "demo-plan-001-build-review-001.md"
+            review_path = (
+                fixture.project_root
+                / "reviews"
+                / "demo-plan"
+                / "demo-plan-001-build-review-001.md"
+            )
             content = review_path.read_text(encoding="utf-8")
             review_path.write_text(
                 content.replace(
@@ -682,7 +699,7 @@ class PlanValidatorTests(unittest.TestCase):
             progress_path = fixture.plan_dir / "tasks" / "001-build" / "PROGRESS.md"
             content = progress_path.read_text(encoding="utf-8")
             content = content.replace(
-                'latest_review: "reviews/demo-plan-001-build-review-001.md"',
+                'latest_review: "reviews/demo-plan/demo-plan-001-build-review-001.md"',
                 "latest_review: null",
             )
             progress_path.write_text(content, encoding="utf-8")
@@ -690,6 +707,35 @@ class PlanValidatorTests(unittest.TestCase):
 
         self.assertTrue(
             any("completed task must record the clean latest_review" in error for error in errors)
+        )
+
+    def test_task_review_path_must_use_plan_subfolder(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={
+                    "001-build": "ready-for-integration",
+                    "002-test": "not-started",
+                },
+                plan_status="in-progress",
+            )
+            progress_path = fixture.plan_dir / "tasks" / "001-build" / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            progress_path.write_text(
+                content.replace(
+                    "reviews/demo-plan/demo-plan-001-build-review-001.md",
+                    "reviews/demo-plan-001-build-review-001.md",
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any(
+                "latest_review must be a normalized Markdown path below "
+                "reviews/demo-plan/" in error
+                for error in errors
+            )
         )
 
     def test_completed_task_requires_integrated_commit(self) -> None:
@@ -720,7 +766,12 @@ class PlanValidatorTests(unittest.TestCase):
                 plan_status="completed",
                 plan_criteria_checked=True,
             )
-            review_path = fixture.project_root / "reviews" / "demo-plan-integration-review-001.md"
+            review_path = (
+                fixture.project_root
+                / "reviews"
+                / "demo-plan"
+                / "demo-plan-integration-review-001.md"
+            )
             content = review_path.read_text(encoding="utf-8")
             review_path.write_text(
                 content.replace(f'head_commit: "{"c" * 40}"', f'head_commit: "{"e" * 40}"'),
@@ -732,6 +783,33 @@ class PlanValidatorTests(unittest.TestCase):
             any("integration latest_review head_commit must be" in error for error in errors)
         )
 
+    def test_plan_review_path_must_use_plan_subfolder(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task_id: "completed" for task_id in PlanFixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            progress_path = fixture.plan_dir / "PROGRESS.md"
+            content = progress_path.read_text(encoding="utf-8")
+            progress_path.write_text(
+                content.replace(
+                    "reviews/demo-plan/demo-plan-integration-review-001.md",
+                    "reviews/demo-plan-integration-review-001.md",
+                ),
+                encoding="utf-8",
+            )
+            errors = fixture.errors()
+
+        self.assertTrue(
+            any(
+                "latest_review must be a normalized Markdown path below "
+                "reviews/demo-plan/" in error
+                for error in errors
+            )
+        )
+
     def test_completed_task_requires_clean_review_result(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             fixture = PlanFixture(Path(temporary))
@@ -740,7 +818,12 @@ class PlanValidatorTests(unittest.TestCase):
                 plan_status="completed",
                 plan_criteria_checked=True,
             )
-            review_path = fixture.project_root / "reviews" / "demo-plan-001-build-review-001.md"
+            review_path = (
+                fixture.project_root
+                / "reviews"
+                / "demo-plan"
+                / "demo-plan-001-build-review-001.md"
+            )
             content = review_path.read_text(encoding="utf-8")
             review_path.write_text(
                 content.replace("status: clean", "status: actionable-findings"),
@@ -759,7 +842,12 @@ class PlanValidatorTests(unittest.TestCase):
                 statuses={"001-build": "needs-fix", "002-test": "not-started"},
                 plan_status="in-progress",
             )
-            review_path = fixture.project_root / "reviews" / "demo-plan-001-build-review-001.md"
+            review_path = (
+                fixture.project_root
+                / "reviews"
+                / "demo-plan"
+                / "demo-plan-001-build-review-001.md"
+            )
             content = review_path.read_text(encoding="utf-8")
             review_path.write_text(
                 content.replace("status: actionable-findings", "status: clean"),

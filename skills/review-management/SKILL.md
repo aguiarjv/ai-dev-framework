@@ -31,10 +31,12 @@ and review the new head state.
 
 The reviewer returns a review payload and a handoff payload. The orchestrator:
 
-1. Writes a task review to `reviews/<plan-id>-<task-id>-review-<NNN>.md`, or a
-   plan integration review to
-   `reviews/<plan-id>-integration-review-<NNN>.md`, using the next unused
-   sequence for that target.
+1. Creates the plan-specific directory `reviews/<plan-id>/` when needed, then
+   writes a task review to
+   `reviews/<plan-id>/<plan-id>-<task-id>-review-<NNN>.md`, or a plan
+   integration review to
+   `reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, using the next
+   unused sequence for that target.
 2. Writes the reviewer handoff to the task's `handoffs/` directory for a task
    review or the plan-level `handoffs/` directory for an integration review.
 3. Sets `latest_review` and `latest_handoff` in the applicable progress file.

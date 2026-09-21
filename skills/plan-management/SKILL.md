@@ -401,12 +401,13 @@ when the approved plan explicitly lists one as a deliverable.
 
 After all tasks complete, run the plan's combined validation in the integration
 worktree and use the review-management skill for a plan integration review.
-Store the review under `reviews/<plan-id>-integration-review-<NNN>.md`, store
-the reviewer handoff at plan level, and update the plan's `latest_review`. If
-the review has actionable findings, keep the plan `in-progress` and add the
-next numbered correction task after resolving any required user decision. A
-correction task follows the same implementation, review, and integration
-lifecycle. A blocked review records a blocker and an exact resolution action.
+Store the review under
+`reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, store the reviewer
+handoff at plan level, and update the plan's `latest_review`. If the review has
+actionable findings, keep the plan `in-progress` and add the next numbered
+correction task after resolving any required user decision. A correction task
+follows the same implementation, review, and integration lifecycle. A blocked
+review records a blocker and an exact resolution action.
 
 Mark satisfied completion criteria as checked. If any plan criterion, combined
 validation, or final integration review remains unfinished, keep the plan

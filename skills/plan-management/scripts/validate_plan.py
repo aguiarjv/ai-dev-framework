@@ -455,6 +455,7 @@ class PlanValidator:
         document: MarkdownDocument,
         key: str,
         root: str,
+        subdirectory: str | None = None,
     ) -> None:
         value = document.frontmatter.get(key)
         if value is None:
@@ -465,15 +466,19 @@ class PlanValidator:
         parts = value.split("/")
         if (
             "\\" in value
-            or len(parts) < 2
+            or len(parts) < (3 if subdirectory is not None else 2)
             or parts[0] != root
+            or (subdirectory is not None and parts[1] != subdirectory)
             or any(part in {"", ".", ".."} for part in parts)
             or PurePosixPath(value).is_absolute()
             or not value.endswith(".md")
         ):
+            expected_root = (
+                f"{root}/{subdirectory}/" if subdirectory is not None else f"{root}/"
+            )
             self.error(
                 document.path,
-                f"{key} must be a normalized Markdown path below {root}/",
+                f"{key} must be a normalized Markdown path below {expected_root}",
             )
 
     def validate_commit(self, document: MarkdownDocument, key: str) -> None:
@@ -666,7 +671,7 @@ class PlanValidator:
         self.validate_worktree(document, allow_null=True, key="integration_worktree")
         self.validate_commit(document, "integration_head_commit")
         self.validate_artifact_path(document, "latest_handoff", "plans")
-        self.validate_artifact_path(document, "latest_review", "reviews")
+        self.validate_artifact_path(document, "latest_review", "reviews", plan_id)
         if document.frontmatter.get("plan") != plan_id:
             self.error(document.path, f"plan must match plan folder name {plan_id!r}")
         if not isinstance(document.frontmatter.get("current_tasks"), list):
@@ -738,7 +743,7 @@ class PlanValidator:
             self.error(document.path, "review_required must be true")
 
     def validate_task_progress(
-        self, document: MarkdownDocument, task_id: str
+        self, document: MarkdownDocument, plan_id: str, task_id: str
     ) -> None:
         required = {
             "task",
@@ -760,7 +765,7 @@ class PlanValidator:
         self.validate_commit(document, "head_commit")
         self.validate_commit(document, "integrated_commit")
         self.validate_artifact_path(document, "latest_handoff", "plans")
-        self.validate_artifact_path(document, "latest_review", "reviews")
+        self.validate_artifact_path(document, "latest_review", "reviews", plan_id)
         if document.frontmatter.get("task") != task_id:
             self.error(document.path, f"task must match task folder name {task_id!r}")
 
@@ -1651,7 +1656,7 @@ class PlanValidator:
                 )
             if progress is not None:
                 progress_documents[task_id] = progress
-                self.validate_task_progress(progress, task_id)
+                self.validate_task_progress(progress, plan_id, task_id)
             if definition is not None and progress is not None:
                 self.validate_task_completion(definition, progress)
 

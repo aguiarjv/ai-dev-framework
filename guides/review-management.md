@@ -9,14 +9,16 @@ research, status, or analysis without judging a target against review criteria.
 
 ## Location and Naming
 
-Create each review as a Markdown file directly inside the applicable managed
-project:
+Create each review as a Markdown file inside the applicable managed project's
+`reviews/` directory. Group every plan-related review under a directory named
+for its plan ID:
 
 ```text
 projects/
   <project-name>/
     reviews/
-      <review-name>.md
+      <plan-id>/
+        <review-name>.md
 ```
 
 Use a concise, descriptive, kebab-case filename that identifies the target or
@@ -24,10 +26,11 @@ purpose of the review. Do not store a managed project's review in the repository
 checkout, another managed project, `docs/`, or `reports/`.
 
 For plan-task reviews, use
-`<plan-id>-<task-id>-review-<NNN>.md`, where the sequence is local to that plan
-and task. Append a new review for every attempt; never replace earlier evidence.
-For a final plan integration review, use
-`<plan-id>-integration-review-<NNN>.md`, with a sequence local to that plan.
+`reviews/<plan-id>/<plan-id>-<task-id>-review-<NNN>.md`, where the sequence is
+local to that plan and task. Append a new review for every attempt; never
+replace earlier evidence. For a final plan integration review, use
+`reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, with a sequence local
+to that plan.
 
 Before writing, check whether the target path already exists. Do not overwrite
 or repurpose an existing review unless the user explicitly asks to update that
@@ -130,9 +133,9 @@ question instead of overstating the conclusion.
    and effects.
 5. Run safe, relevant checks needed to support or disprove suspected findings.
 6. Return a complete review payload and handoff payload to the orchestrator.
-7. The orchestrator writes the review under
-   `projects/<project-name>/reviews/`. It writes the handoff under the task's
-   `handoffs/` directory for task reviews or the plan-level `handoffs/`
+7. The orchestrator writes a plan-related review under
+   `projects/<project-name>/reviews/<plan-id>/`. It writes the handoff under the
+   task's `handoffs/` directory for task reviews or the plan-level `handoffs/`
    directory for plan integration reviews.
 8. Recheck every finding against its cited evidence and clearly state any
    unreviewed areas or unresolved limitations.

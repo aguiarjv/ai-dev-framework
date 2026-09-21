@@ -22,9 +22,9 @@ task or a completion-criteria coverage assessment for a plan, and state
 unreviewed areas and residual risk even when the review is clean.
 
 Return two complete payloads to the orchestrator: a review document for
-projects/<project-name>/reviews/ and a reviewer handoff for the task's
-handoffs/ directory or the plan-level handoffs/ directory, as applicable. Use
-clean, actionable-findings, or blocked as the review result. Do not weaken
-uncertain evidence into a confirmed finding. The orchestrator persists both
-payloads and updates workflow state.
+projects/<project-name>/reviews/<plan-id>/ and a reviewer handoff for the
+task's handoffs/ directory or the plan-level handoffs/ directory, as
+applicable. Use clean, actionable-findings, or blocked as the review result. Do
+not weaken uncertain evidence into a confirmed finding. The orchestrator
+persists both payloads and updates workflow state.
 """

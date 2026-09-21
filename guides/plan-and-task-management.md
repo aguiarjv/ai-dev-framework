@@ -346,11 +346,11 @@ state recorded by the implementer. Additional reviews occur only at high-risk
 checkpoints named in the approved task or when new evidence makes one necessary.
 
 The reviewer returns complete review and handoff payloads. Because the reviewer
-is sandboxed read-only, the orchestrator writes them under `reviews/` and the
-task's `handoffs/` directory. A clean checkpoint review leaves the task
-`in-progress`. A clean final review makes it `ready-for-integration`.
-Actionable findings set it to `needs-fix` and require a fresh implementer
-session followed by another review.
+is sandboxed read-only, the orchestrator writes them under
+`reviews/<plan-id>/` and the task's `handoffs/` directory. A clean checkpoint
+review leaves the task `in-progress`. A clean final review makes it
+`ready-for-integration`. Actionable findings set it to `needs-fix` and require
+a fresh implementer session followed by another review.
 
 When implementation is ready:
 
@@ -391,8 +391,9 @@ and no unresolved blocker prevents completion.
 After every task completes, run the agreed combined validation in the plan
 integration worktree. Then review the exact branch and head against the plan's
 scope and completion criteria. Store the review as
-`reviews/<plan-id>-integration-review-<NNN>.md`, store its reviewer handoff in
-the plan-level `handoffs/` folder, and record both artifacts in plan progress.
+`reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, store its reviewer
+handoff in the plan-level `handoffs/` folder, and record both artifacts in plan
+progress.
 
 An actionable integration review keeps the plan `in-progress`. Add the next
 numbered correction task after resolving any user decision the findings
