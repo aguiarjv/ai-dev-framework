@@ -55,6 +55,21 @@ Keep definitions separate from execution progress:
   transitions that apply to the whole plan.
 - Each task's `handoffs/` stores immutable implementation, review, correction,
   and completion transitions for that task.
+- An optional `METRICS.jsonl` beside plan or task progress stores one measured
+  agent run per line. It is observational data, not workflow state.
+
+Use the plan-level metrics file for shared exploration and final plan review.
+Use a task-level metrics file for runs assigned to that task. Measure command
+elapsed time at the runner boundary and take token counts from the runner's
+reported usage. A missing token count means unknown, not zero. Phase elapsed
+times add up to agent time; parallel runs mean their sum may exceed clock time.
+Do not ask agents to estimate tokens or paste metrics event streams into
+`PROGRESS.md`. A short summary or path is enough when reporting resource use.
+Each JSONL record identifies its target, phase, role, source, UTC start and end,
+elapsed milliseconds, exit code, and usage status. `usage` keeps input, cached
+input, and output tokens separately. Nullable token fields mean the runner did
+not provide a reliable count. Summaries label their token sums as known values
+and count runs with missing usage.
 
 Treat `PLAN.md` and `TASK.md` as stable definitions. Record ongoing work in the
 corresponding `PROGRESS.md` files. If requirements or scope change, update the

@@ -46,6 +46,11 @@ class SourceContractTests(unittest.TestCase):
             self.actions_by_path[codex_path].content,
             self.actions_by_path[claude_path].content,
         )
+        measure_path = "plan-management/scripts/measure_task.py"
+        self.assertEqual(
+            self.actions_by_path[f".agents/skills/{measure_path}"].content,
+            self.actions_by_path[f".claude/skills/{measure_path}"].content,
+        )
 
     def test_commit_management_is_installed_and_required(self) -> None:
         self.assertIn(".agents/guides/commit-management.md", self.actions_by_path)

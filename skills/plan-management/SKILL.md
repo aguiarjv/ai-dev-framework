@@ -356,6 +356,35 @@ If requirements or scope change, update the appropriate definition file and
 its `updated` timestamp, then record the change in its progress file. Run
 `scripts/validate_plan.py <path-to-plan>` after structural or state changes.
 
+## Measure Resource Usage
+
+For a separately launched Codex CLI phase, use
+`scripts/measure_task.py run` to record command elapsed time and token usage
+reported by `codex exec --json`. Point `--target-dir` at the plan folder for
+shared exploration or final plan review, or at the task folder for task work.
+The script creates `METRICS.jsonl` only when a run finishes. For example:
+
+```text
+python3 .agents/skills/plan-management/scripts/measure_task.py run \
+  --target-dir projects/<project-name>/plans/<plan-id>/tasks/<task-id> \
+  --phase implementation --role implementer -- \
+  codex exec --json "<bounded task assignment>"
+```
+
+To inspect totals without changing plan state:
+
+```text
+python3 .agents/skills/plan-management/scripts/measure_task.py summarize \
+  --target-dir projects/<project-name>/plans/<plan-id>/tasks/<task-id>
+```
+
+The command's time includes tool execution and any waits inside that command;
+it does not measure the entire task lifecycle or user wait time. Token usage is
+unknown when the runner does not report it. Do not infer missing tokens from
+text length or write a zero in their place. Do not launch an extra agent merely
+to measure a phase, and do not load metrics files into agent context unless
+the assignment concerns resource analysis.
+
 ## Complete a Task
 
 An implementer never completes a task directly. It sets the task to

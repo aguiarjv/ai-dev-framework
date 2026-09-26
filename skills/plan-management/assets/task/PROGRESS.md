@@ -33,6 +33,10 @@ latest_review: null
 
 - Not run.
 
+## Resource Usage
+
+- Run metrics: `METRICS.jsonl` when a measured runner has been used; otherwise not captured.
+
 ## Blockers
 
 - None.

@@ -83,6 +83,13 @@ discovers the workspace-level agents, skills, and instructions. Use the
 `project-setup` skill to clone or initialize managed projects after the base
 workspace has been installed.
 
+For separately launched Codex CLI work, the installed plan-management skill
+includes `scripts/measure_task.py`. Its `run` command wraps a `codex exec --json`
+phase and writes elapsed time and reported token usage to `METRICS.jsonl` beside
+the relevant plan or task progress file. Its `summarize` command reports known
+totals and missing usage without loading raw traces into agent context. Runs
+from other interfaces are not automatically measured by this script.
+
 ## Repository Layout
 
 ```text

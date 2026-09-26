@@ -25,6 +25,11 @@ latest_review: null
 - Review: Not run.
 - Delivery: Not performed.
 
+## Resource Usage
+
+- Shared run metrics: `METRICS.jsonl` when a measured runner has been used; otherwise not captured.
+- Task run metrics: each task's own `METRICS.jsonl`, when available.
+
 ## Task Status
 
 | Task | Status | Result or blocker |
