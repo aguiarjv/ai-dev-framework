@@ -358,6 +358,18 @@ its `updated` timestamp, then record the change in its progress file. Run
 
 ## Measure Resource Usage
 
+Native Codex root turns and subagents are observed by the installed project
+hook after the user trusts it in `/hooks` and starts a new session. Do not
+launch a second agent to collect metrics. The hook writes
+`.agents/metrics/codex-native.jsonl` at workspace level. Inspect totals with
+`python3 .agents/skills/plan-management/scripts/native_metrics.py --summarize`.
+Task attribution is present only when the working directory identifies a task
+worktree; token totals are best-effort from local session records and must be
+shown as unavailable when not recognized. Never treat the workspace hook log
+as a task-level `METRICS.jsonl` or count overlapping root/subagent time as
+end-to-end wall time. Do not add native and CLI-wrapper tokens for the same
+run. The hook does not apply to Claude Code.
+
 For a separately launched Codex CLI phase, use
 `scripts/measure_task.py run` to record command elapsed time and token usage
 reported by `codex exec --json`. Point `--target-dir` at the plan folder for

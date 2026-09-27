@@ -36,6 +36,12 @@ class SourceContractTests(unittest.TestCase):
             self.assertIn(f".claude/agents/{role}.md", paths)
         self.assertIn("AGENTS.md", paths)
         self.assertIn("CLAUDE.md", paths)
+        self.assertIn(".codex/hooks.json", paths)
+        hooks = json.loads(self.actions_by_path[".codex/hooks.json"].content)
+        self.assertEqual(
+            {"UserPromptSubmit", "Stop", "SubagentStart", "SubagentStop"},
+            set(hooks["hooks"]),
+        )
         self.assertEqual(b"@AGENTS.md\n", self.actions_by_path["CLAUDE.md"].content)
         self.assertIn("projects/README.md", paths)
 
@@ -50,6 +56,11 @@ class SourceContractTests(unittest.TestCase):
         self.assertEqual(
             self.actions_by_path[f".agents/skills/{measure_path}"].content,
             self.actions_by_path[f".claude/skills/{measure_path}"].content,
+        )
+        native_path = "plan-management/scripts/native_metrics.py"
+        self.assertEqual(
+            self.actions_by_path[f".agents/skills/{native_path}"].content,
+            self.actions_by_path[f".claude/skills/{native_path}"].content,
         )
 
     def test_commit_management_is_installed_and_required(self) -> None:
@@ -159,6 +170,44 @@ class InstallerCliTests(unittest.TestCase):
                 before_mtimes,
                 {path: path.stat().st_mtime_ns for path in tracked_paths},
             )
+
+    def test_native_hook_finds_workspace_from_nested_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "workspace"
+            installed = self.run_installer(target)
+            self.assertEqual(0, installed.returncode, installed.stderr)
+            nested = target / "projects/sample/worktrees/example/001-task"
+            nested.mkdir(parents=True)
+            task = target / "projects/sample/plans/example/tasks/001-task"
+            task.mkdir(parents=True)
+            (task.parent.parent / "PLAN.md").write_text("# Plan\n", encoding="utf-8")
+            (task / "TASK.md").write_text("# Task\n", encoding="utf-8")
+            hooks = json.loads((target / ".codex/hooks.json").read_text(encoding="utf-8"))
+            command = hooks["hooks"]["SubagentStart"][0]["hooks"][0]["command"]
+            event = {
+                "hook_event_name": "SubagentStart",
+                "session_id": "session",
+                "turn_id": "turn",
+                "agent_id": "agent",
+                "agent_type": "implementer",
+                "cwd": str(nested),
+            }
+            result = subprocess.run(
+                command,
+                shell=True,
+                cwd=nested,
+                input=json.dumps(event),
+                capture_output=True,
+                text=True,
+                check=False,
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            metrics = target / ".agents/metrics/codex-native.jsonl"
+            self.assertTrue(metrics.is_file())
+            record = json.loads(metrics.read_text(encoding="utf-8"))
+            self.assertEqual("implementer", record["role"])
+            self.assertEqual("001-task", record["task"])
 
     def test_matching_partial_target_is_completed(self) -> None:
         actions = install.build_actions(FRAMEWORK_ROOT)

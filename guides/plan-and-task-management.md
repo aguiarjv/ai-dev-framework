@@ -56,9 +56,23 @@ Keep definitions separate from execution progress:
 - Each task's `handoffs/` stores immutable implementation, review, correction,
   and completion transitions for that task.
 - An optional `METRICS.jsonl` beside plan or task progress stores one measured
-  agent run per line. It is observational data, not workflow state.
+  Codex CLI run per line. It is observational data, not workflow state.
 
-Use the plan-level metrics file for shared exploration and final plan review.
+Native Codex lifecycle hooks record root turns and subagents in the workspace
+`.agents/metrics/codex-native.jsonl` after the user trusts the project hook.
+They start recording only in sessions where the hook is active; installing the
+framework does not backfill earlier runs. The hook stores timestamps, role, model,
+optional project/plan/task inferred from the working directory, and numeric
+usage when a recognized local transcript record is available. It never stores
+prompts or transcript text. Codex does not guarantee transcript format, so
+unrecognized or absent usage is unknown. A workspace-root cwd may leave task
+attribution unknown. Use `native_metrics.py --summarize` for role-level totals;
+root and subagent time can overlap, so summed agent time is not wall time.
+If the same run is also wrapped by `measure_task.py`, do not add its CLI tokens
+to the native hook totals; the two records may describe the same work.
+
+For separately launched CLI phases, use the plan-level metrics file for shared
+exploration and final plan review.
 Use a task-level metrics file for runs assigned to that task. Measure command
 elapsed time at the runner boundary and take token counts from the runner's
 reported usage. A missing token count means unknown, not zero. Phase elapsed

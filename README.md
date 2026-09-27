@@ -48,6 +48,7 @@ CLAUDE.md
 .ai-dev-framework.json
 .codex/
   agents/
+  hooks.json
 .claude/
   agents/
   skills/
@@ -83,12 +84,20 @@ discovers the workspace-level agents, skills, and instructions. Use the
 `project-setup` skill to clone or initialize managed projects after the base
 workspace has been installed.
 
-For separately launched Codex CLI work, the installed plan-management skill
-includes `scripts/measure_task.py`. Its `run` command wraps a `codex exec --json`
-phase and writes elapsed time and reported token usage to `METRICS.jsonl` beside
-the relevant plan or task progress file. Its `summarize` command reports known
-totals and missing usage without loading raw traces into agent context. Runs
-from other interfaces are not automatically measured by this script.
+For native Codex work, the installed `.codex/hooks.json` records root turns and
+subagent starts/stops in `.agents/metrics/codex-native.jsonl`. Codex requires
+the user to review and trust this project-local hook in `/hooks` before it runs;
+start a new session after trusting it. The hook records timestamps, role, and
+available numeric usage, never prompts or transcripts. Local transcript usage
+is best-effort because its format is not stable; missing counts remain unknown.
+Use `python3 .agents/skills/plan-management/scripts/native_metrics.py
+--summarize` from the installed workspace to inspect the log. Native events
+cannot always be attributed to one task when the session cwd is the workspace
+root.
+
+For separately launched Codex CLI work, `scripts/measure_task.py run` still
+wraps `codex exec --json` and writes `METRICS.jsonl` beside the relevant plan
+or task progress file. Claude Code runs are not covered by the Codex hook.
 
 ## Repository Layout
 

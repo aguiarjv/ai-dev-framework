@@ -1,0 +1,49 @@
+{
+  "description": "Record minimal Codex agent timing and available token usage in this AI Dev Framework workspace.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "python3 -c 'import pathlib,runpy; paths=(d / \".agents/skills/plan-management/scripts/native_metrics.py\" for d in (pathlib.Path.cwd(), *pathlib.Path.cwd().parents)); script=next((p for p in paths if p.is_file() and (p.parents[4] / \".ai-dev-framework.json\").is_file()), None); runpy.run_path(str(script), run_name=\"__main__\") if script else None'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "python3 -c 'import pathlib,runpy; paths=(d / \".agents/skills/plan-management/scripts/native_metrics.py\" for d in (pathlib.Path.cwd(), *pathlib.Path.cwd().parents)); script=next((p for p in paths if p.is_file() and (p.parents[4] / \".ai-dev-framework.json\").is_file()), None); runpy.run_path(str(script), run_name=\"__main__\") if script else None'"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "python3 -c 'import pathlib,runpy; paths=(d / \".agents/skills/plan-management/scripts/native_metrics.py\" for d in (pathlib.Path.cwd(), *pathlib.Path.cwd().parents)); script=next((p for p in paths if p.is_file() and (p.parents[4] / \".ai-dev-framework.json\").is_file()), None); runpy.run_path(str(script), run_name=\"__main__\") if script else None'"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "python3 -c 'import pathlib,runpy; paths=(d / \".agents/skills/plan-management/scripts/native_metrics.py\" for d in (pathlib.Path.cwd(), *pathlib.Path.cwd().parents)); script=next((p for p in paths if p.is_file() and (p.parents[4] / \".ai-dev-framework.json\").is_file()), None); runpy.run_path(str(script), run_name=\"__main__\") if script else None'"
+          }
+        ]
+      }
+    ]
+  }
+}

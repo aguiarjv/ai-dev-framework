@@ -362,6 +362,7 @@ def build_actions(root: Path | None = None) -> list[InstallAction]:
     template_directory = root / "installer" / "templates"
     add(Path("AGENTS.md"), (template_directory / "AGENTS.md").read_bytes())
     add(Path("CLAUDE.md"), (template_directory / "CLAUDE.md").read_bytes())
+    add(Path(".codex") / "hooks.json", (template_directory / "codex-hooks.json").read_bytes())
     add(
         Path("projects") / "README.md",
         (template_directory / "projects-README.md").read_bytes(),
