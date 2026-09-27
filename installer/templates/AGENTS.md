@@ -34,6 +34,8 @@ This meta repository coordinates AI-assisted work across projects stored under
   integration reviews.
 - Use the `adr-management` skill for architecture decisions.
 - Use the `database-exploration` skill for live database facts.
+- Use the `frontend-design` skill for new or substantially redesigned web UI.
+- Use the `webapp-testing` skill for browser-level checks of local web apps.
 - Use the `commit-management` skill whenever creating, amending, squashing,
   merging, reverting, or proposing a Git commit.
 

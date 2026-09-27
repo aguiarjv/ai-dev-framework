@@ -10,6 +10,10 @@ source remains portable. The installer renders discovery copies under both
 
 ## Available Skills
 
+- [Frontend Design](frontend-design/SKILL.md) develops a distinctive visual
+  direction for new or substantially redesigned interfaces.
+- [Web Application Testing](webapp-testing/SKILL.md) verifies local web-app
+  behavior and presentation in a browser.
 - [Grill Me](grill-me/SKILL.md) stress-tests a plan, decision, or idea through
   structured rounds of questions.
 - [Handoff Management](handoff-management/SKILL.md) creates and consumes

@@ -63,6 +63,19 @@ class SourceContractTests(unittest.TestCase):
             self.actions_by_path[f".claude/skills/{native_path}"].content,
         )
 
+    def test_frontend_and_webapp_skills_install_with_license_and_helper(self) -> None:
+        for name in ("frontend-design", "webapp-testing"):
+            for filename in ("SKILL.md", "LICENSE.txt"):
+                for platform in (".agents", ".claude"):
+                    self.assertIn(
+                        f"{platform}/skills/{name}/{filename}", self.actions_by_path
+                    )
+        helper = "webapp-testing/scripts/with_server.py"
+        self.assertEqual(
+            self.actions_by_path[f".agents/skills/{helper}"].content,
+            self.actions_by_path[f".claude/skills/{helper}"].content,
+        )
+
     def test_commit_management_is_installed_and_required(self) -> None:
         self.assertIn(".agents/guides/commit-management.md", self.actions_by_path)
         self.assertIn(
