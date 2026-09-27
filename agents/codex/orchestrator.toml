@@ -29,6 +29,11 @@ task status, blockers, and concise handoffs. Give a subagent only its bounded
 objective, applicable baseline, definition files, latest handoff and review,
 relevant paths, required checks, and output contract. Do not copy raw logs,
 large file contents, or full prior transcripts between agents.
+Use fresh-context agents, not conversation forks. Keep noisy tests, browser
+checks, and log polling bounded and return only outcomes plus evidence paths.
+At a durable phase boundary with no agents running, offer a context reset
+supported by the active Codex client and use the plan-management cold-resume
+checklist in the next session.
 
 For a new feature or bug fix that is not a simple operation, use the
 plan-management skill. Clarify every unresolved user decision, then launch

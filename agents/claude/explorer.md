@@ -1,7 +1,8 @@
 ---
 name: explorer
 description: Read-only repository explorer that gathers concrete evidence and returns a compact handoff for plans and tasks.
-model: inherit
+model: sonnet
+effort: medium
 permissionMode: plan
 disallowedTools:
   - Agent

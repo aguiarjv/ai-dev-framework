@@ -5,10 +5,14 @@ description: Execute one approved plan task or review correction in its assigned
 
 # Task Execution
 
-Use this skill inside an `implementer` agent. Follow the
-[Orchestration Workflow](../../guides/orchestration-workflow.md),
-[Plan and Task Management guide](../../guides/plan-and-task-management.md), and
-[Handoff Management guide](../../guides/handoff-management.md).
+Use this skill inside an `implementer` agent. It is the bounded task contract;
+routine implementation does not require loading the full plan lifecycle guide.
+Follow the [Handoff Management guide](../../guides/handoff-management.md)
+when recording a handoff. Consult the
+[Plan and Task Management guide](../../guides/plan-and-task-management.md)
+only when a task status, dependency, or metadata rule is unclear, and the
+[Orchestration Workflow](../../guides/orchestration-workflow.md) only when the
+delegation boundary is unclear.
 
 ## Start
 
@@ -32,6 +36,7 @@ Stop and report a mismatch rather than editing a different checkout or task.
 - Update task `PROGRESS.md` at meaningful checkpoints with work completed,
   decisions, changed files, validation, blockers, and one exact next action.
 - Never edit plan-level `PROGRESS.md`.
+- Never merge into the plan integration branch or perform plan-level completion.
 
 ## Checkpoint Review
 

@@ -5,464 +5,108 @@ description: Create, resume, update, and complete structured plans and tasks in 
 
 # Plan Management
 
-Use this skill for plans stored under a managed project's `plans/` directory.
-Follow the [Plan and Task Management guide](../../guides/plan-and-task-management.md)
-and use the templates in `assets/` without removing required metadata or
-sections.
-
-## Required Context
-
-Before creating or changing files, identify:
-
-- The managed project under `projects/<project-name>/`.
-- The plan to create, resume, update, or complete.
-- The repository worktree, branch, and commit the plan is based on.
-- The plan integration worktree and branch, integration order, delivery branch,
-  and combined validation required before plan completion.
-- The goal, scope, completion criteria, and dependencies relevant to the work.
-- The task breakdown and each task's acceptance criteria and validation needs.
-- The planned worktree and branch for each task.
-- Each task's final review, the plan's final integration review, and any
-  high-risk intermediate review checkpoints.
-- Whether the work makes a durable architectural decision and the ADR path when
-  one is required.
-- The existing and planned repository-relative files or folders related to the
-  plan and each task.
-- The existing or planned managed-project documentation and installed workspace
-  guides relevant to the plan and each task.
-
-Ask the user when missing information affects any of these decisions. Do not
-invent requirements, scope, acceptance criteria, dependencies, task boundaries,
-validation expectations, or completion evidence.
-
-## Clarify a New Plan
-
-Before writing a new plan or any of its tasks, interview the user until both of
-you share an explicit understanding of the work. Do not treat a likely answer,
-a convention, or the agent's recommendation as the user's decision.
-
-Map the required decisions as a design tree: each unresolved decision branches
-into the decisions that depend on it. Work through the tree in rounds. In each
-round:
-
-1. Identify the complete frontier: every unresolved decision whose
-   prerequisites are already settled.
-2. Ask all frontier questions together, number them, and give a recommended
-   answer with a concise rationale for each one.
-3. Wait for the user's answers before asking questions that depend on them.
-4. Recompute the frontier from the answers and repeat until no required
-   decision remains unresolved.
-
-Ask even when one answer appears obvious. Recommendations help the user decide;
-they do not authorize the agent to decide for them. At minimum, settle the
-goal, in-scope and out-of-scope behavior, requirements, constraints,
-dependencies, approach choices that affect behavior or project shape, task
-boundaries, acceptance criteria, validation expectations, and documentation
-deliverables.
-
-Finding facts is the agent's responsibility. Inspect the repository and use the
-required explorer subagents instead of asking the user for information that can
-be established from the environment. If a fact is still unavailable after
-reasonable investigation and it blocks a decision, explain what was checked
-and ask the user for the missing information. Exploration may proceed while
-unrelated frontier questions are being answered.
-
-After exploration and all decision rounds are complete, summarize the proposed
-plan and task breakdown, including the key decisions and completion criteria.
-Ask the user to confirm that this represents the shared understanding. Do not
-create the plan or task files until the user confirms it. Do not carry an
-unresolved user decision into `Open Questions`; that section is only for
-explicitly accepted, non-blocking uncertainty.
-
-## Structure
-
-Keep active plans in `plans/<plan-name>/`:
-
-```text
-<plan-name>/
-  PLAN.md
-  PROGRESS.md
-  handoffs/
-  tasks/
-    001-<task-name>/
-      TASK.md
-      PROGRESS.md
-      handoffs/
-```
-
-Prefix task folders with three-digit sequence numbers. Keep a task's identifier
-equal to its folder name. Keep the plan identifier equal to its folder name.
-Use handoff files as immutable transition records; `PROGRESS.md` remains the
-source of truth for current state.
-
-Group every plan-managed worktree under a folder named for the plan:
-
-```text
-worktrees/
-  <plan-name>/
-    plan-integration/
-    001-<task-name>/
-    002-<task-name>/
-```
-
-Set `planned_integration_worktree` to
-`worktrees/<plan-name>/plan-integration` and each task's `planned_worktree` to
-`worktrees/<plan-name>/<task-id>`. The initial repository checkout remains at
-its existing path and is not moved into the plan folder.
-
-## Templates
-
-Use these files as the canonical starting points:
-
-- `assets/plan/PLAN.md` for the plan definition.
-- `assets/plan/PROGRESS.md` for overall plan progress.
-- `assets/task/TASK.md` for a task definition.
-- `assets/task/PROGRESS.md` for task progress and handoff state.
-
-Replace every placeholder when creating a file. Preserve the YAML frontmatter
-keys and Markdown headings so agents and future automation can read the files
-consistently.
-
-Use an ISO 8601 UTC timestamp for `updated` and an ISO 8601 date for `created`.
-Plan and task definitions both have an `updated` field. Refresh it whenever
-their requirements, scope, dependencies, related paths, acceptance criteria, or
-other definition content changes.
-
-Completion and acceptance checkbox state is the only lifecycle state stored in
-a definition file. Checking an unchanged criterion does not require an
-`updated` timestamp change; changing its wording or meaning does.
-
-## Statuses
-
-Use only these values in plan progress frontmatter:
-
-- `not-started`: No implementation work has begun.
-- `in-progress`: Work is actively underway.
-- `blocked`: Work cannot continue until a recorded blocker is resolved.
-- `completed`: Tasks are integrated, completion criteria and combined
-  validation are satisfied, and the current integration head has a clean final
-  review.
-
-Task progress also allows:
-
-- `ready-for-review`: Implementation and focused validation are complete, and
-  final review is the next action.
-- `ready-for-integration`: The final task review is clean and merging the
-  reviewed task head into the plan integration branch is the next action.
-- `needs-fix`: An evidence-backed review has actionable findings that require a
-  fresh implementation pass.
-
-The task-level `PROGRESS.md` is the source of truth for detailed task state. The
-plan-level `PROGRESS.md` summarizes task statuses and the overall plan state.
-Keep both synchronized after a task status changes.
-
-Keep `current_tasks` limited to tasks whose status is `in-progress`.
-`ready-for-review`, `ready-for-integration`, `needs-fix`, and `blocked` tasks
-remain actionable through their plan-level `Next Actions` rows but are not
-current implementation work.
-
-A task is actionable only after every task ID in `depends_on` is `completed`.
-Dependencies must reference other tasks in the same plan and must not be
-self-referential or cyclic. Unmet dependencies leave a task `not-started`; they
-do not by themselves make it `blocked`.
-
-Set the plan to `blocked` when incomplete tasks remain but none can proceed due
-to recorded unresolved blockers, including downstream tasks waiting on blocked
-tasks. Completed tasks and plans are terminal unless the user explicitly asks
-to reopen them. Record the reopening reason, set the item to `in-progress`, and
-move a reopened plan from `plans/done/` back to `plans/`.
-
-If reopening a task makes a completed transitive dependent's dependency
-incomplete, reset that dependent to `not-started`, record why its prior
-completion must be reassessed, clear its `integrated_commit`, and continue
-through the dependency graph. Clear the reopened task's `integrated_commit` as
-well. Keep the existing Git history and integrate the corrected results as new
-commits; do not rewrite the plan branch. If the plan was completed, reopen and
-move the plan before changing its tasks, and clear the plan's `latest_review`
-because it no longer describes a final state.
-
-Never renumber or reuse task IDs. New tasks receive the next unused three-digit
-sequence after the highest sequence already assigned.
-
-Every task requires a final review and integration. An implementation agent
-sets a task to `ready-for-review`; a clean final review moves it to
-`ready-for-integration`. Only the orchestrator may set it to `completed` after
-the exact reviewed task head is merged into the plan integration branch and
-the integrated commit is recorded. A review with actionable findings sets it
-to `needs-fix`. Before spawning a fresh implementer for the correction pass,
-the orchestrator sets it back to `in-progress` and supplies the latest review
-and review-to-fix handoff.
-
-Keep exactly one plan Tasks-table row for every task folder. Link it to that
-task's `TASK.md`, and express `Depends on` as `None` or a comma-separated list
-matching the task's `depends_on` frontmatter.
-
-## Explore the Project
-
-During plan creation, the orchestrator must launch explorer subagents before
-finalizing the plan and task definitions. Exploration is read-only.
-
-Before launching explorers, resolve the exploration baseline:
-
-- `worktree`: The checkout path relative to the managed project folder.
-- `branch`: The branch checked out in that worktree.
-- `baseline_commit`: The full commit SHA at `HEAD`, or YAML `null` when the
-  repository has no commits.
-
-Give every explorer the same baseline so their findings describe one consistent
-repository state. Store the baseline in the plan frontmatter.
-
-Give each explorer a clear area to investigate and ask for:
-
-- A summary of the relevant current implementation or project state.
-- Concrete paths to existing files and folders related to the proposed work.
-- Probable new files or folders required by the proposed work.
-- The expected use of each path: `inspect`, `modify`, or `create`.
-- Evidence for each finding and any unresolved uncertainty.
-- Relevant files under the managed project's `docs/` folder.
-- Applicable installed guidance under `.agents/guides/`.
-- Probable project documentation that the work must create or update.
-
-Every explorer must inspect the managed project's `docs/` folder for material
-relevant to its investigation area and check `.agents/guides/` for applicable
-shared guidance. Read candidate files before treating them as relevant; a
-filename alone is not evidence. Report explicitly when a folder is empty or no
-relevant documentation or guide exists.
-
-Consolidate the explorer findings before writing the plan. Add the complete set
-of probable paths to the plan's `Related Files and Folders` section, then add
-the relevant subset to each task's matching section. Preserve supporting
-evidence in both tables and record unresolved, non-blocking uncertainty in the
-plan's `Open Questions` section.
-
-Use `existing` only for paths verified during exploration. Use `planned` for
-paths expected to be created. Do not invent paths. If explorers disagree or a
-required path cannot be verified, continue exploring or ask the user.
-
-Record related paths relative to the repository checkout root. Do not use
-absolute paths or paths relative to the managed project folder.
-
-In related-path tables, use one path per row, keep `State` to `existing` or
-`planned`, and use a comma-separated combination of `inspect`, `modify`, and
-`create` for `Expected Use`. Give every row concrete, non-empty relevance and
-evidence.
-
-Add relevant documentation and guides to the matching table in `PLAN.md` and
-`TASK.md`:
-
-- `project-docs` entries begin with `docs/` and are relative to the managed
-  project folder. They may be existing or planned and may use `inspect`,
-  `modify`, or `create`. A planned plan-level entry includes `create`; a
-  downstream task may use only later operations after another task creates it.
-  Existing entries do not use `create`.
-- `workspace-guide` entries begin with `.agents/guides/` and are relative to the
-  meta-repository root. They must be existing and use only `inspect`.
-
-The plan table contains the complete set. Each task table contains its relevant
-subset with matching source and state; task expected-use values must be a
-subset of the plan entry. Leave only the table header when no documentation or
-guide applies.
-
-If the environment cannot launch explorer subagents, tell the user and ask how
-to proceed instead of silently skipping exploration.
-
-## Create a Plan
-
-1. Confirm `plans/<plan-name>/` does not already exist. If it does, ask the user
-   whether to resume it or choose another name; do not overwrite it.
-2. Begin the new-plan clarification process. Launch explorer subagents as soon
-   as factual prerequisites become clear, while continuing with unrelated
-   frontier questions.
-3. Consolidate all explorer findings about the current project state, probable
-   related paths, relevant project documentation, and applicable workspace
-   guides.
-4. Recompute the decision frontier from those findings and continue asking the
-   user until every required decision is settled.
-5. Summarize the resulting plan and task breakdown and obtain the user's
-   confirmation of the shared understanding.
-6. Record the plan integration worktree as
-   `worktrees/<plan-name>/plan-integration`, plus its branch, integration order,
-   delivery branch, combined validation, and final integration review. Record
-   every task worktree as `worktrees/<plan-name>/<task-id>`, plus its branch,
-   final review, intermediate high-risk checkpoints, and ADR decision.
-7. Create the plan folder, plan-level `handoffs/`, `tasks/`, `PLAN.md`, and the
-   plan-level `PROGRESS.md`.
-8. Fill the plan templates with the exploration baseline, approval time,
-   agreed goal, scope, approach, dependencies, related paths, documentation and
-   guide references, evidence, open questions, architecture decisions, task
-   index, and completion criteria.
-9. Create one numbered folder and `handoffs/` directory per task and fill its
-   `TASK.md` and `PROGRESS.md` templates.
-10. Persist accepted explorer handoff payloads under the plan-level `handoffs/`
-    directory and set `latest_handoff` in plan progress.
-11. Initialize the plan and every task with `status: not-started`.
-12. Leave `current_tasks` empty while all tasks are `not-started`, and list each
-   immediately actionable task under `Next Actions`.
-13. After approval, use the worktree-management skill to create the plan
-    integration worktree from `baseline_commit`, then create worktrees for
-    immediately actionable tasks from the recorded integration head. Create
-    dependent worktrees only after their dependencies are integrated and
-    completed.
-14. Run `scripts/validate_plan.py <path-to-plan>` and resolve every error.
-
-## Resume or Update Work
-
-1. Read the plan definition and progress files, then every current task's
-   definition and progress files.
-2. Verify that recorded state agrees with observable work before changing it.
-3. Update the task progress after meaningful checkpoints and before handing
-   work to another agent.
-4. Record concise completed work, decisions, changed files, validation,
-   blockers, and one exact next action.
-5. Report the checkpoint to the orchestrator. The orchestrator updates the plan
-   progress whenever the set of active tasks, a task status, a blocker, or a
-   next action changes.
-
-The orchestrator is the sole writer of the plan-level `PROGRESS.md`. Task
-agents write only their own task-level `PROGRESS.md`. The orchestrator
-serializes task reports into the shared plan progress file so parallel agents
-do not overwrite one another.
-
-Tasks may run in parallel when their dependencies are satisfied. List every
-`in-progress` task in `current_tasks`, and keep a separate next action in each
-task's progress file.
-
-The plan-level `Next Actions` table lists every `in-progress` task and every
-`not-started` task whose dependencies are complete. It also lists every
-`ready-for-review` task with its review action, every `needs-fix` task with its
-fix assignment, every `ready-for-integration` task with its serialized merge
-action, and every `blocked` task with its blocker-resolution or waiting action.
-Use the literal `plan` for combined validation, final integration review, or
-another remaining plan-level action after all tasks complete. Completed plans
-have no next-action rows. Keep only unresolved blockers in `Blockers`, use
-`None.` when there are none, and use `None.` as a completed task's next action.
-Keep one plan-level `Task Status` row per task, synchronized with task progress
-and carrying a concise result-or-blocker summary.
-
-Before starting a task, confirm its dependencies are completed, base it on the
-current plan integration head, and use its planned assignment to create and
-record its actual worktree and branch in task progress. Update `head_commit`,
-`uncommitted_changes`, `latest_handoff`, and `latest_review` at meaningful
-checkpoints and before handoff. Record `integrated_commit` only after the
-reviewed task head is merged into the plan integration branch. Parallel tasks
-must use separate Git worktrees and branches; do not let parallel agents edit
-the same checkout or the plan integration worktree.
-
-The orchestrator owns the plan integration worktree. Keep its actual worktree,
-branch, head commit, and uncommitted-change state current in plan progress.
-Serialize integrations; no task agent may edit that checkout.
-
-If requirements or scope change, update the appropriate definition file and
-its `updated` timestamp, then record the change in its progress file. Run
-`scripts/validate_plan.py <path-to-plan>` after structural or state changes.
-
-## Measure Resource Usage
-
-Native Codex root turns and subagents are observed by the installed project
-hook after the user trusts it in `/hooks` and starts a new session. Do not
-launch a second agent to collect metrics. The hook writes
-`.agents/metrics/codex-native.jsonl` at workspace level. Inspect totals with
+Use this skill for a managed project's `plans/` directory. The
+[Plan and Task Management guide](../../guides/plan-and-task-management.md) is
+the canonical lifecycle and schema reference; read its relevant sections for
+the operation at hand. Do not load unrelated workspace guides merely because
+they appear in the workspace's routing index.
+
+## Route the Work
+
+- New plan: read the guide's Clarify Before Creating, Project Exploration, and
+  Creating a Plan sections. Resolve user decisions and one repository baseline,
+  then obtain confirmation before writing plan files. Use read-only explorers
+  when the delegated workflow requires them; if they are unavailable, ask the
+  user how to proceed.
+- Resume or update: read Statuses and Managing Progress. Read the plan
+  definition and progress, then only the task files relevant to current or next
+  actions. Verify recorded worktree, branch, and head against Git before
+  changing state.
+- Review and integration: read Reviewing a Task and use the review-management
+  and worktree-management skills for their respective operations. Reviewers
+  stay read-only. The orchestrator alone writes plan-level `PROGRESS.md` and
+  serializes task integrations into the dedicated plan integration worktree,
+  including for single-task plans.
+- Reopen or complete: read Statuses and Completing a Plan. Completed work is
+  terminal unless the user explicitly reopens it. Completion does not grant
+  authority to deliver, push, or clean up branches or worktrees.
+
+Do not invent requirements, acceptance evidence, dependencies, or missing user
+decisions. Keep task progress and plan summaries synchronized; use immutable
+handoffs as transition records. Preserve the required metadata and headings
+when editing definitions or progress. Run `scripts/validate_plan.py
+<path-to-plan>` after structural or state changes and before archiving.
+
+## Templates and Helpers
+
+Use the canonical templates without dropping required fields:
+
+- `assets/plan/PLAN.md` and `assets/plan/PROGRESS.md`.
+- `assets/task/TASK.md` and `assets/task/PROGRESS.md`.
+
+The guide defines field semantics, status transitions, path tables, review
+gates, and archival rules. The scripts here implement bounded operations; they
+do not replace the orchestrator's judgment about acceptance or authorization.
+
+### Cold resume
+
+At plan approval or after a task integration, offer a context reset only when
+all agents have finished and approval, task statuses, integration branch/head,
+latest artifacts, and exact next actions are durable. The user may run
+`/clear` in Claude Code. Never reset during a review, merge, or handoff, and
+do not claim to have cleared the context yourself.
+
+In a fresh session, use the [cold-resume checklist](references/cold-resume.md):
+read plan `PLAN.md` and `PROGRESS.md`, inspect only the task definitions and
+progress needed for current/next actions, verify Git state and latest
+artifacts, and run the plan validator before continuing.
+
+### Resource measurement
+
+Native Codex root turns and subagents are observed by the installed hook only
+after the user trusts it in `/hooks` and starts a new session. It writes
+`.agents/metrics/codex-native.jsonl`. Summarize it with
 `python3 .agents/skills/plan-management/scripts/native_metrics.py --summarize`.
-Task attribution is present only when the working directory identifies a task
-worktree; token totals are best-effort from local session records and must be
-shown as unavailable when not recognized. Never treat the workspace hook log
-as a task-level `METRICS.jsonl` or count overlapping root/subagent time as
-end-to-end wall time. Do not add native and CLI-wrapper tokens for the same
-run. The hook does not apply to Claude Code.
+Usage from unrecognized local transcript records is unknown; a workspace-root
+cwd may not identify a task. Do not sum overlapping root/subagent elapsed time
+as end-to-end wall time.
 
-For a separately launched Codex CLI phase, use
-`scripts/measure_task.py run` to record command elapsed time and token usage
-reported by `codex exec --json`. Point `--target-dir` at the plan folder for
-shared exploration or final plan review, or at the task folder for task work.
-The script creates `METRICS.jsonl` only when a run finishes. For example:
+For a separately launched Codex CLI phase, `scripts/measure_task.py run`
+records command elapsed time and reported `codex exec --json` usage in the
+plan's or task's `METRICS.jsonl`. Run `scripts/measure_task.py summarize
+--target-dir <plan-or-task-folder>` for totals. Do not double-count a run seen
+by both native and CLI measurement, infer missing tokens as zero, or launch an
+agent solely to measure a phase.
+
+For offline Claude Code JSONL analysis, run
+`python3 .agents/skills/plan-management/scripts/claude_usage.py
+<transcript-directory>`. It reports numeric usage by main/subagent and model,
+separates uncached input, cache creation, cache reads, and output, and counts
+requests above 200k input context. It does not retain prompt text or reliably
+establish role, phase, fork status, cost, or active elapsed time. Session span
+includes idle time. Compare a fixed sample before/after changes with review
+quality, retries, and outcomes; lower token totals alone do not prove success.
+Keep raw metrics files out of ordinary agent context.
+
+### Validated review-to-integration transition
+
+After independently checking a clean final review and each acceptance
+criterion, use `scripts/plan_state.py` for `ready-for-review` to
+`ready-for-integration`. It updates the task checkboxes (only with
+`--accept-all`), task progress, and plan progress, and validates the staged
+result before writing:
 
 ```text
-python3 .agents/skills/plan-management/scripts/measure_task.py run \
-  --target-dir projects/<project-name>/plans/<plan-id>/tasks/<task-id> \
-  --phase implementation --role implementer -- \
-  codex exec --json "<bounded task assignment>"
+python3 .agents/skills/plan-management/scripts/plan_state.py \
+  projects/<project-name>/plans/<plan-id> transition <task-id> \
+  ready-for-integration \
+  --review reviews/<plan-id>/<review-file>.md \
+  --handoff plans/<plan-id>/tasks/<task-id>/handoffs/<handoff-file>.md \
+  --accept-all --dry-run
 ```
 
-To inspect totals without changing plan state:
-
-```text
-python3 .agents/skills/plan-management/scripts/measure_task.py summarize \
-  --target-dir projects/<project-name>/plans/<plan-id>/tasks/<task-id>
-```
-
-The command's time includes tool execution and any waits inside that command;
-it does not measure the entire task lifecycle or user wait time. Token usage is
-unknown when the runner does not report it. Do not infer missing tokens from
-text length or write a zero in their place. Do not launch an extra agent merely
-to measure a phase, and do not load metrics files into agent context unless
-the assignment concerns resource analysis.
-
-## Complete a Task
-
-An implementer never completes a task directly. It sets the task to
-`ready-for-review`, creates an implementation handoff, and returns control to
-the orchestrator.
-
-After a clean final review, mark every satisfied or explicitly accepted
-acceptance criterion as checked, record the review path and outcome, and set
-the task to `ready-for-integration`. Its next action is to integrate the exact
-reviewed head.
-
-Use the worktree-management skill to merge one `ready-for-integration` task at
-a time into the plan integration branch. Confirm both worktrees are clean and
-still match their recorded heads. Prepare the merge without committing it, run
-the task's required validation against the combined tree, and commit only when
-that validation passes. Record the resulting plan-branch commit as the task's
-`integrated_commit`, refresh plan integration progress, clear any stale
-plan-level `latest_review`, and set the task to `completed` with next action
-`None.`.
-
-If the merge conflicts or combined validation fails, abort it so the plan
-integration branch remains unchanged and clean. Create a task-local correction
-handoff describing the evidence and current integration head, clear stale
-readiness state, uncheck any acceptance criterion no longer satisfied, return
-the task to `in-progress`, and use a fresh implementer to reconcile the task
-branch. The corrected task requires validation and another final review before
-integration.
-
-A final review with actionable findings sets the task to `needs-fix`. Persist
-the review and reviewer handoff, then spawn a fresh implementer with only the
-task, latest implementation handoff, accepted findings, and required context.
-
-## Complete a Plan
-
-Set a plan to `completed` only when all required tasks are integrated and
-complete, the plan's completion criteria are satisfied, combined validation
-passes on a clean plan integration head, a final review of that exact head is
-clean, and no unresolved blocker prevents completion.
-
-Every ADR marked required in the approved plan must exist under `docs/adrs/`
-and reflect the accepted decision before completion. Reports are required only
-when the approved plan explicitly lists one as a deliverable.
-
-After all tasks complete, run the plan's combined validation in the integration
-worktree and use the review-management skill for a plan integration review.
-Store the review under
-`reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, store the reviewer
-handoff at plan level, and update the plan's `latest_review`. If the review has
-actionable findings, keep the plan `in-progress` and add the next numbered
-correction task after resolving any required user decision. A correction task
-follows the same implementation, review, and integration lifecycle. A blocked
-review records a blocker and an exact resolution action.
-
-Mark satisfied completion criteria as checked. If any plan criterion, combined
-validation, or final integration review remains unfinished, keep the plan
-`in-progress` and add a `plan` row to `Next Actions`. Set the plan to
-`completed` only after the current integration head has a clean final review.
-
-Plan completion produces a reviewed `plan/<plan-id>` branch ready for delivery;
-it does not merge that branch into `delivery_branch`, push it, or clean up its
-branches and worktrees. Perform those operations only when the target
-repository's explicit policy or a separate user instruction authorizes them.
-
-Record the final outcome in the plan-level `PROGRESS.md`, then move the complete
-plan folder to `plans/done/<plan-name>/`. If that destination already exists,
-stop and ask the user instead of merging or overwriting it.
-
-Run `scripts/validate_plan.py <path-to-plan>` before moving the plan and again
-against its final path under `plans/done/`.
+Remove `--dry-run` to apply. The script is idempotent for the same artifacts
+and refuses inconsistent starting state, missing artifacts, or a mismatched
+review. `--accept-all` is an explicit affirmation, never an inference from the
+review result. Other transitions remain manual until separately automated and
+tested.

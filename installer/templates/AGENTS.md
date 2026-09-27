@@ -3,17 +3,21 @@
 This meta repository coordinates AI-assisted work across projects stored under
 `projects/`.
 
-## Required Guidance
+## Guidance Routing
 
-- Follow `.agents/guides/orchestration-workflow.md` for the delegated
+Read only the guides and skills needed for the current operation. The list
+below is a routing index, not a request to load every guide at session start.
+
+- Follow `.agents/guides/orchestration-workflow.md` when using the delegated
   development lifecycle and context boundaries.
-- Follow `.agents/guides/multi-project-workspace.md` for workspace structure.
-- Follow `.agents/guides/plan-and-task-management.md` for plan, task, progress,
-  handoff, and completion rules.
-- Follow `.agents/guides/handoff-management.md` for every agent transition.
-- Follow `.agents/guides/worktree-management.md` for isolated task worktrees.
+- Follow `.agents/guides/multi-project-workspace.md` when resolving workspace structure.
+- Follow `.agents/guides/plan-and-task-management.md` when orchestrating plan
+  lifecycle state; implementers use the task-execution skill for routine task
+  progress and consult the guide only for unclear lifecycle rules.
+- Follow `.agents/guides/handoff-management.md` when recording an agent transition.
+- Follow `.agents/guides/worktree-management.md` when managing isolated task worktrees.
 - Follow `.agents/guides/review-management.md` for project reviews.
-- Follow `.agents/guides/report-management.md` for optional project reports.
+- Follow `.agents/guides/report-management.md` when creating project reports.
 - Follow `.agents/guides/adr-management.md` for decisions under `docs/adrs/`.
 - Follow `.agents/guides/database-exploration.md` for live database inspection.
 - Follow `.agents/guides/commit-management.md` for every authored Git commit
@@ -53,6 +57,11 @@ applicable specialized agents.
 Keep the primary context limited to requirements, user decisions, plan and task
 state, blockers, concise handoffs, and review outcomes. Do not bring raw logs,
 large file contents, or full subagent transcripts into the primary thread.
+For high-volume tests, browser checks, and log polling, use bounded commands or
+an appropriately scoped non-fork agent and return a concise result plus an
+artifact path. Delegation should save main-context space without multiplying
+work unnecessarily. Do not create conversation forks for framework work;
+use fresh-context specialized agents when delegation is warranted.
 
 ## Agent Roles
 
@@ -97,6 +106,12 @@ orchestration workflow. For work beyond that threshold:
 6. Complete required ADRs, run combined validation, and obtain a clean final
    review of the plan integration head before completing and archiving the
    plan. Create reports only when requested or required by the plan.
+
+At plan approval and after a task integration, the orchestrator may offer a
+context reset once state is durable and no agents are running. The user runs
+`/clear` in Claude Code; resume from the plan's `PLAN.md` and `PROGRESS.md`
+using the plan-management skill. Never reset while a review, merge, or agent
+handoff is in flight.
 
 ## Working Rules
 

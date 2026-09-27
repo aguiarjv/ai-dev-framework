@@ -3,6 +3,22 @@
 Use the `plans/` directory in a managed project to define work, track its
 progress, and preserve enough context for another agent to continue it.
 
+## Clarify Before Creating
+
+Before writing a new plan or task, identify the goal, scope, constraints,
+dependencies, approach choices, task boundaries, acceptance criteria,
+validation, documentation, ADR needs, integration order, delivery branch, and
+review checkpoints. Ask the user about decisions that affect those items; do
+not treat a recommendation or convention as approval. Establish repository
+facts through read-only exploration instead of asking the user to supply them.
+
+For dependent decisions, work through a design tree in rounds: ask every
+currently answerable question together, give a recommendation and rationale,
+wait for answers, then revisit questions that depended on those answers.
+After exploration and clarification, summarize the proposed plan and task
+breakdown and obtain the user's confirmation before creating files. `Open
+Questions` is only for accepted, non-blocking uncertainty.
+
 ## Structure
 
 ```text
@@ -34,6 +50,10 @@ plans/
 
 Use a descriptive name for each plan. Prefix task folders with a three-digit
 number so their intended order is clear and their paths remain stable.
+Keep each plan's integration and task worktrees under
+`worktrees/<plan-id>/`; retain the initial checkout at its existing path.
+Even a single-task plan keeps an isolated plan integration worktree and the
+required final integration review.
 
 ## File Responsibilities
 
@@ -71,6 +91,12 @@ root and subagent time can overlap, so summed agent time is not wall time.
 If the same run is also wrapped by `measure_task.py`, do not add its CLI tokens
 to the native hook totals; the two records may describe the same work.
 
+For offline Claude Code transcript analysis, use the plan-management skill's
+`claude_usage.py` helper. It reports numeric usage without prompt contents,
+but cannot reliably attribute role, phase, fork status, or active agent time.
+Do not combine its totals with Codex runs or treat input token classes as
+equal-cost tokens.
+
 For separately launched CLI phases, use the plan-level metrics file for shared
 exploration and final plan review.
 Use a task-level metrics file for runs assigned to that task. Measure command
@@ -97,6 +123,8 @@ the definition's `updated` timestamp; changing its wording or meaning does.
 Store identifiers, creation dates, dependencies, statuses, and update
 timestamps in YAML frontmatter. Use an ISO 8601 date for creation dates and an
 ISO 8601 UTC timestamp for definition and progress updates.
+Start from the plan-management skill's four `assets/` templates. Replace every
+placeholder and preserve required frontmatter keys and section headings.
 
 The plan frontmatter also records the repository state explored during plan
 creation:
@@ -287,6 +315,12 @@ how to proceed instead of silently skipping exploration.
 
 ## Creating a Plan
 
+If `plans/<plan-id>/` already exists, ask whether to resume it or choose a new
+identifier; never overwrite it. After approval, initialize the plan and every
+task as `not-started`, leave `current_tasks` empty, list immediately actionable
+tasks under `Next Actions`, and validate before implementation. Persist
+accepted explorer handoffs under the plan-level `handoffs/` directory.
+
 1. Clarify the plan's goal, scope, requirements, task boundaries, completion
    criteria, review checkpoints, and ADR needs without guessing.
 2. Resolve the exploration baseline, launch explorer subagents, and consolidate
@@ -368,6 +402,10 @@ accepted. Set `latest_review` in task progress for task reviews and in plan
 progress for integration reviews. Both values use paths relative to the managed
 project and must point to existing artifacts.
 
+For a clean final review, the plan-management skill provides a validated
+`plan_state.py` transition to `ready-for-integration`. The orchestrator still
+judges acceptance criteria and supplies the review and handoff paths.
+
 ## Reviewing a Task
 
 Every task requires a final read-only review of the exact worktree and head
@@ -441,6 +479,8 @@ Record the final outcome in the plan-level `PROGRESS.md`, then move the entire
 plan folder to `plans/done/<plan-name>/`. Keep the plan and task files together
 so their definitions, decisions, validation, and progress history remain
 available.
+If the destination already exists, stop and ask rather than merging or
+overwriting it. Validate before and after the move.
 
 Do not complete a plan until every required final review is clean and every ADR
 required by the approved plan exists and reflects the accepted decision.

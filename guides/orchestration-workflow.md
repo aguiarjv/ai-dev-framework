@@ -43,6 +43,17 @@ definition, applicable instructions, baseline, latest handoff, and specific
 paths needed for its assignment. Persist durable state in managed-project
 artifacts so later agents do not depend on chat history.
 
+Keep high-volume test, browser, and log output in bounded tool results or
+artifacts, with only a pass/fail summary and evidence path in the primary
+thread. Delegate noisy read-heavy checks when that saves context, but do not
+delegate or parallelize a plan integration merge. Do not spawn a conversation
+fork for framework work; use fresh-context specialized agents.
+
+After plan approval or a successful task integration, once no agents are
+running, offer the user a `/clear` boundary. First persist approval, exact
+statuses, branch/head, latest artifacts, and next actions. On resumption,
+follow the plan-management skill's cold-resume checklist and verify Git state.
+
 ## Agent Roles
 
 - `explorer` inspects repository code, project documentation, and installed

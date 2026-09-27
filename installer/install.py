@@ -318,10 +318,17 @@ def validate_sources(root: Path) -> None:
         raise SourceValidationError(f"{version_path}: version must use MAJOR.MINOR.PATCH")
     validate_agents(root)
     validate_skills(root)
-    for template_name in ("AGENTS.md", "CLAUDE.md", "projects-README.md"):
+    for template_name in ("AGENTS.md", "CLAUDE.md", "projects-README.md", "claude-settings.json"):
         template_path = root / "installer" / "templates" / template_name
         if not template_path.is_file():
             raise SourceValidationError(f"Missing installer template: {template_path}")
+    settings_path = root / "installer" / "templates" / "claude-settings.json"
+    try:
+        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise SourceValidationError(f"{settings_path}: invalid JSON: {error}") from error
+    if settings != {"permissions": {"deny": ["Agent(fork)"]}}:
+        raise SourceValidationError(f"{settings_path}: expected only the fork-deny rule")
 
 
 def file_mode(path: Path) -> int:
@@ -362,6 +369,7 @@ def build_actions(root: Path | None = None) -> list[InstallAction]:
     template_directory = root / "installer" / "templates"
     add(Path("AGENTS.md"), (template_directory / "AGENTS.md").read_bytes())
     add(Path("CLAUDE.md"), (template_directory / "CLAUDE.md").read_bytes())
+    add(Path(".claude") / "settings.json", (template_directory / "claude-settings.json").read_bytes())
     add(Path(".codex") / "hooks.json", (template_directory / "codex-hooks.json").read_bytes())
     add(
         Path("projects") / "README.md",

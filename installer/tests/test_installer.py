@@ -29,6 +29,16 @@ class SourceContractTests(unittest.TestCase):
     def test_native_agents_and_portable_skills_validate(self) -> None:
         install.validate_sources(FRAMEWORK_ROOT)
 
+    def test_explorer_model_pilot_is_role_scoped(self) -> None:
+        codex = install.load_codex_agents(FRAMEWORK_ROOT)
+        claude = install.load_claude_agents(FRAMEWORK_ROOT)
+        self.assertEqual("gpt-6-luna", codex["explorer"][0]["model"])
+        self.assertEqual("high", codex["explorer"][0]["model_reasoning_effort"])
+        self.assertEqual("sonnet", claude["explorer"][0]["model"])
+        self.assertEqual("medium", claude["explorer"][0]["effort"])
+        self.assertNotIn("model_reasoning_effort", codex["reviewer"][0])
+        self.assertEqual("inherit", claude["reviewer"][0]["model"])
+
     def test_build_contains_both_platforms_and_shared_instructions(self) -> None:
         paths = set(self.actions_by_path)
         for role in install.ROLE_MARKERS:
@@ -36,6 +46,9 @@ class SourceContractTests(unittest.TestCase):
             self.assertIn(f".claude/agents/{role}.md", paths)
         self.assertIn("AGENTS.md", paths)
         self.assertIn("CLAUDE.md", paths)
+        self.assertIn(".claude/settings.json", paths)
+        claude_settings = json.loads(self.actions_by_path[".claude/settings.json"].content)
+        self.assertEqual(["Agent(fork)"], claude_settings["permissions"]["deny"])
         self.assertIn(".codex/hooks.json", paths)
         hooks = json.loads(self.actions_by_path[".codex/hooks.json"].content)
         self.assertEqual(
@@ -62,6 +75,15 @@ class SourceContractTests(unittest.TestCase):
             self.actions_by_path[f".agents/skills/{native_path}"].content,
             self.actions_by_path[f".claude/skills/{native_path}"].content,
         )
+        for support_path in (
+            "plan-management/scripts/claude_usage.py",
+            "plan-management/scripts/plan_state.py",
+            "plan-management/references/cold-resume.md",
+        ):
+            self.assertEqual(
+                self.actions_by_path[f".agents/skills/{support_path}"].content,
+                self.actions_by_path[f".claude/skills/{support_path}"].content,
+            )
 
     def test_frontend_and_webapp_skills_install_with_license_and_helper(self) -> None:
         for name in ("frontend-design", "webapp-testing"):
