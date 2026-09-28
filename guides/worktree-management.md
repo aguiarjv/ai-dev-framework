@@ -30,10 +30,12 @@ push.
 
 ## Creation Timing
 
-Do not create integration or task worktrees before the user approves the plan.
-After approval, create `worktrees/<plan-id>/`, then create the plan integration
-worktree inside it from the recorded baseline commit. Record its actual
-worktree, branch, head commit, and uncommitted-change state in plan progress.
+Do not create integration or task worktrees when the user approves creation of
+the plan files. Wait until those files exist and a later user message explicitly
+requests implementation of that plan. Then create `worktrees/<plan-id>/` and
+the plan integration worktree inside it from the recorded baseline commit.
+Record its actual worktree, branch, head commit, and uncommitted-change state
+in plan progress.
 
 Create worktrees for immediately actionable tasks from the current plan
 integration head. Create a dependent task's worktree only after its
@@ -101,10 +103,10 @@ Downstream task worktrees are based on this refreshed head.
 
 ## Delivery and Cleanup
 
-Approval of the plan authorizes creation of its recorded worktrees and merges
-from cleanly reviewed task branches into its integration branch. It does not
-authorize merging or rebasing the plan branch into `delivery_branch`, pushing,
-deleting branches, or removing worktrees.
+The later explicit implementation request authorizes creation of the plan's
+recorded worktrees and merges from cleanly reviewed task branches into its
+integration branch. It does not authorize merging or rebasing the plan branch
+into `delivery_branch`, pushing, deleting branches, or removing worktrees.
 
 Remove a task worktree or branch only when the user explicitly requests it or
 an applicable project rule already authorizes cleanup. Resolve the exact path

@@ -49,4 +49,4 @@ latest_review: null
 
 ## Next Action
 
-<State one exact action for the next agent to perform.>
+Await a later explicit user request to implement this plan before starting this task.

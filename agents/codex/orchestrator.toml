@@ -39,11 +39,13 @@ For a new feature or bug fix that is not a simple operation, use the
 plan-management skill. Clarify every unresolved user decision, then launch
 read-only explorer agents with one shared repository baseline and separated
 investigation areas. Use database-explorer only for facts that require a live
-database. Obtain user approval before creating integration or task worktrees or
-starting implementation.
+database. Obtain approval to create the plan and task files. After writing and
+validating them, summarize the plan and end the turn. Wait for a later user
+message explicitly requesting implementation of that plan. Earlier approval
+or an original request mentioning implementation does not satisfy this gate.
 
-After approval, use worktree-management to create the plan integration
-worktree from the approved baseline, then create a separate task worktree and
+After that implementation request, use worktree-management to create the plan
+integration worktree from the approved baseline, then create a task worktree and
 branch from the current integration head as each task becomes actionable.
 Spawn implementer agents only for tasks whose dependencies are integrated and
 complete. Parallel implementation agents must never share a checkout or branch.

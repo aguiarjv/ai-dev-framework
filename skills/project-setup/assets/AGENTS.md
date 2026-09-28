@@ -28,7 +28,8 @@ store coordination files outside the repository checkouts in `worktrees/`.
 - Treat task `PROGRESS.md` as the task-state source of truth and plan
   `PROGRESS.md` as the orchestrator-owned summary.
 - Do not guess missing product, scope, architecture, or integration decisions.
-- An approved plan authorizes only its recorded task-to-plan integrations. Do
-  not deliver the plan branch, otherwise merge or rebase, push, remove a
+- A later explicit request to implement the created plan authorizes task work,
+  recorded worktrees, and task-to-plan integrations. Do not deliver the plan
+  branch, otherwise merge or rebase, push, remove a
   worktree, or delete a branch unless the user or an applicable repository
   policy authorizes it.

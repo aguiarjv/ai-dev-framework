@@ -54,7 +54,10 @@ class MigrationTests(unittest.TestCase):
         (project / "AGENTS.md").write_text(
             "# Sample\n\n## Project Paths\n\n- Project documentation: `docs/`\n"
             "- Active and completed plans: `plans/`\n\n## Other Rules\n\n"
-            "- The checkout may have `docs/` of its own.\n",
+            "- The checkout may have `docs/` of its own.\n"
+            "- An approved plan authorizes only its recorded task-to-plan integrations. Do\n"
+            "  not deliver the plan branch, otherwise merge or rebase, push, remove a\n"
+            "  worktree, or delete a branch unless the user authorizes it.\n",
             encoding="utf-8",
         )
         (project / "README.md").write_text("See `docs/` in the checkout.\n", encoding="utf-8")
@@ -107,6 +110,8 @@ class MigrationTests(unittest.TestCase):
         self.assertTrue((self.project / "worktrees/main/docs/source.md").is_file())
         self.assertIn("`workspace-docs/`", (self.project / "AGENTS.md").read_text())
         self.assertIn("`docs/` of its own", (self.project / "AGENTS.md").read_text())
+        self.assertIn("A later explicit request to implement", (self.project / "AGENTS.md").read_text())
+        self.assertNotIn("An approved plan authorizes", (self.project / "AGENTS.md").read_text())
         text = (self.project / "workspace-plans/example/PLAN.md").read_text()
         self.assertIn("workspace-reviews/example/review.md", text)
         self.assertIn("workspace-plans/example/handoffs/one.md", text)
@@ -116,7 +121,7 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("`docs/adrs/repo-decision.md` | `repo-file`", text)
         self.assertTrue((self.project / "workspace-plans/done/finished/PLAN.md").is_file())
         manifest = json.loads((self.target / install.MANIFEST_PATH).read_text())
-        self.assertEqual("0.2.1", manifest["framework_version"])
+        self.assertEqual("0.2.2", manifest["framework_version"])
         self.assertIn("already migrated", self.run_migration(True))
 
     def test_collision_and_modified_install_stop_before_writes(self) -> None:
@@ -196,7 +201,7 @@ class MigrationTests(unittest.TestCase):
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         self.run_migration(True)
         upgraded = json.loads(manifest_path.read_text(encoding="utf-8"))
-        self.assertEqual("0.2.1", upgraded["framework_version"])
+        self.assertEqual("0.2.2", upgraded["framework_version"])
 
 
 if __name__ == "__main__":

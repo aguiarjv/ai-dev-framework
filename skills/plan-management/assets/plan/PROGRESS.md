@@ -15,7 +15,11 @@ latest_review: null
 
 ## Summary
 
-<Summarize the current overall state of the plan.>
+<Summarize the approved plan. Implementation has not started.>
+
+## Implementation Request
+
+- Awaiting a later explicit user request to implement this plan.
 
 ## Integration
 
@@ -44,4 +48,4 @@ latest_review: null
 
 | Task | Action |
 | --- | --- |
-| `001-<task-name>` | <State one exact action for an agent to perform.> |
+| `001-<task-name>` | Await a later explicit user request to implement this plan. |

@@ -81,11 +81,12 @@ For work that crosses the direct-execution threshold:
 2. Launch repository explorers and, when live database facts are required, a
    database explorer. Exploration is read-only.
 3. Consolidate the returned evidence, propose the plan and task breakdown, and
-   obtain the user's approval.
-4. Create plan and task artifacts. Record a plan integration worktree and
-   branch, delivery branch, and planned worktree and branch names for every
-   task.
-5. After plan approval, create the integration worktree from the approved
+   obtain the user's approval to create the plan files.
+4. Create and validate plan and task artifacts. Record planned worktree and
+   branch names, the delivery branch, and integration order. Summarize the
+   created files and stop. Wait for a later user message explicitly requesting
+   implementation of this plan.
+5. After that request, create the integration worktree from the recorded
    baseline. Create task worktrees from the current integration head only when
    their dependencies are integrated and complete.
 6. Spawn one implementer per actionable task. Parallel implementers use

@@ -23,6 +23,15 @@ JOURNAL = ".ai-dev-framework-migration"
 OLD_PATH = re.compile(r"(?<![\w-])(?:docs|plans|scripts|reviews|reports)/")
 OLD_LITERAL = re.compile(r"['\"](?:docs|plans|scripts|reviews|reports)['\"]")
 TEXT_SUFFIXES = {".md", ".py", ".sh", ".json", ".toml", ".yaml", ".yml", ".txt"}
+OLD_APPROVAL_RULE = (
+    "- An approved plan authorizes only its recorded task-to-plan integrations. Do\n"
+    "  not deliver the plan branch, otherwise merge or rebase, push, remove a\n"
+)
+NEW_IMPLEMENTATION_RULE = (
+    "- A later explicit request to implement the created plan authorizes task work,\n"
+    "  recorded worktrees, and task-to-plan integrations. Do not deliver the plan\n"
+    "  branch, otherwise merge or rebase, push, remove a\n"
+)
 
 
 class MigrationError(ValueError):
@@ -71,7 +80,7 @@ def rename_paths(text: str) -> str:
 def project_instructions(text: str) -> str:
     marker = "## Project Paths\n"
     if marker not in text:
-        return text
+        return text.replace(OLD_APPROVAL_RULE, NEW_IMPLEMENTATION_RULE)
     before, section = text.split(marker, 1)
     body, separator, after = section.partition("\n## ")
     labels = (
@@ -83,7 +92,8 @@ def project_instructions(text: str) -> str:
         rename_paths(line) if line.startswith(labels) else line
         for line in body.splitlines(keepends=True)
     )
-    return before + marker + revised + (separator + after if separator else "")
+    result = before + marker + revised + (separator + after if separator else "")
+    return result.replace(OLD_APPROVAL_RULE, NEW_IMPLEMENTATION_RULE)
 
 
 def plan_artifact(text: str, plan_id: str) -> str:
@@ -194,6 +204,8 @@ def project_changes(target: Path) -> tuple[list[tuple[Path, Path]], list[FileCha
                 for number, line in enumerate(text.splitlines(), 1):
                     if OLD_PATH.search(line):
                         warnings.append(f"REVIEW {path}:{number}: possible old path")
+                    if name == "AGENTS.md" and "approved plan authorizes" in line.lower():
+                        warnings.append(f"REVIEW {path}:{number}: old implementation authorization rule")
     return moves, changes, warnings
 
 

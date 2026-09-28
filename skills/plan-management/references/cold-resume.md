@@ -16,8 +16,12 @@ useful after compaction or a handoff to another orchestrator.
 4. Run `scripts/validate_plan.py <path-to-plan>`. Report any discrepancy and
    resolve it before editing state or launching work. Confirm no earlier agent
    is still running before starting a replacement.
-5. Summarize the current approval, exact next action, and any blocker in a few
-   lines; then continue through the relevant plan-management step.
+5. Distinguish approval to create plan files from a later user message explicitly
+   requesting implementation. Check the plan progress `Implementation Request`
+   section when present. If the plan is still awaiting that message,
+   summarize its paths and wait; do not create worktrees or launch agents.
+   Otherwise summarize the exact next action and any blocker in a few lines,
+   then continue through the relevant plan-management step.
 
 The files are authoritative for workflow state, but recorded Git facts must be
 verified. A reset does not grant new authority to merge, push, delete, or

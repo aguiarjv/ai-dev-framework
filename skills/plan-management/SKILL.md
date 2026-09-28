@@ -17,11 +17,19 @@ they appear in the workspace's routing index.
   Creating a Plan sections. Resolve user decisions and one repository baseline,
   then obtain confirmation before writing plan files. Use read-only explorers
   when the delegated workflow requires them; if they are unavailable, ask the
-  user how to proceed.
+  user how to proceed. After creating and validating the plan and tasks,
+  summarize their paths and stop. Wait for a later user message explicitly
+  requesting implementation of that plan before creating worktrees, assigning
+  implementers, or starting task work. Approval to write the plan is not that
+  implementation request, even if the original request mentioned implementation.
+- Start implementation: read the guide's Starting Implementation section.
+  Proceed only after a later user message explicitly asks to implement the
+  created plan. Record that request in plan progress before creating worktrees.
 - Resume or update: read Statuses and Managing Progress. Read the plan
   definition and progress, then only the task files relevant to current or next
   actions. Verify recorded worktree, branch, and head against Git before
-  changing state.
+  changing state. A not-started plan still awaiting an explicit implementation
+  request must remain at that handoff boundary.
 - Review and integration: read Reviewing a Task and use the review-management
   and worktree-management skills for their respective operations. Reviewers
   stay read-only. The orchestrator alone writes plan-level `PROGRESS.md` and

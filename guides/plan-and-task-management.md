@@ -18,6 +18,9 @@ wait for answers, then revisit questions that depended on those answers.
 After exploration and clarification, summarize the proposed plan and task
 breakdown and obtain the user's confirmation before creating files. `Open
 Questions` is only for accepted, non-blocking uncertainty.
+Confirmation here authorizes writing the plan and task files only. Starting
+implementation requires a separate, later user message explicitly requesting
+implementation of the created plan.
 
 ## Structure
 
@@ -134,7 +137,7 @@ creation:
 - `baseline_commit`: The full commit SHA at `HEAD`, or YAML `null` when the
   repository has no commits.
 - `approved_at`: The ISO 8601 UTC time when the user approved the proposed plan
-  and task breakdown.
+  and task breakdown for creation. It does not record permission to implement.
 - `planned_integration_worktree`: The isolated checkout owned by the
   orchestrator for combining reviewed task branches. Use
   `worktrees/<plan-id>/plan-integration`.
@@ -315,11 +318,15 @@ how to proceed instead of silently skipping exploration.
 
 ## Creating a Plan
 
-If `workspace-plans/<plan-id>/` already exists, ask whether to resume it or choose a new
-identifier; never overwrite it. After approval, initialize the plan and every
-task as `not-started`, leave `current_tasks` empty, list immediately actionable
-tasks under `Next Actions`, and validate before implementation. Persist
-accepted explorer handoffs under the plan-level `handoffs/` directory.
+If `workspace-plans/<plan-id>/` already exists, ask whether to resume it or
+choose a new identifier; never overwrite it. After approval to create the
+files, initialize the plan and every task as `not-started`, leave
+`current_tasks` empty, list immediately actionable tasks under `Next Actions`
+as waiting for the user's implementation request, and validate. Leave actual
+integration and task worktree fields `null`.
+Use the plan progress `Implementation Request` section to record that the request
+is still pending. Persist accepted explorer handoffs under the plan-level
+`handoffs/` directory.
 
 1. Clarify the plan's goal, scope, requirements, task boundaries, completion
    criteria, review checkpoints, and ADR needs without guessing.
@@ -336,14 +343,30 @@ accepted explorer handoffs under the plan-level `handoffs/` directory.
 5. Create each numbered task folder with `TASK.md`, `PROGRESS.md`, and
    `handoffs/`.
 6. Persist accepted explorer handoffs at plan level and initialize progress
-   with the first actionable tasks.
-7. Create the plan integration worktree from the approved baseline, then create
-   worktrees for immediately actionable tasks from its recorded head. Create
-   dependent task worktrees only after their dependencies are integrated and
-   complete.
+   with the first actionable tasks. Their next action is to await an explicit
+   user request to implement this plan.
+7. Report the created plan and task paths and their `not-started` state, then
+   tell the user to send a later request when ready to implement. End the turn.
+   Do not create worktrees, start task agents, or begin repository changes.
+   Neither the original request nor approval to create the files substitutes
+   for the later implementation request.
 
 Do not invent missing scope, requirements, dependencies, or acceptance
 criteria. Ask the user when those details affect the plan.
+
+## Starting Implementation
+
+When a later user message explicitly requests implementation of the created
+plan, replace the pending line under plan progress `Implementation Request`
+with the UTC time and a brief summary of the user's request. Verify the plan
+and task definitions, repository baseline, dependencies, and applicable
+repository instructions. Update the waiting next actions, then create the plan
+integration worktree from the recorded baseline. Create task worktrees for
+immediately actionable tasks from its current head. Create
+dependent task worktrees only after their dependencies are integrated and
+complete. Delegate actionable tasks to implementers. A generic request to
+continue planning or an approval of the plan files is not an implementation
+request.
 
 ## Managing Progress
 

@@ -31,7 +31,7 @@ below is a routing index, not a request to load every guide at session start.
   validating, reopening, or completing a plan or task.
 - Use the `worktree-management` skill to create the plan integration worktree,
   assign task worktrees, and integrate cleanly reviewed task branches after
-  plan approval.
+  the later explicit implementation request.
 - Use the `handoff-management` skill to persist agent handoffs.
 - Use the `task-execution` skill inside implementation agents.
 - Use the `review-management` skill to coordinate task and final plan
@@ -95,10 +95,12 @@ orchestration workflow. For work beyond that threshold:
 
 1. Clarify decisions and use plan-management to explore the project and
    propose a plan and tasks.
-2. Obtain user approval before creating integration or task worktrees or starting
-   implementation.
-3. Create the plan integration worktree, then create task worktrees from its
-   current head as tasks become actionable and delegate each to an implementer.
+2. Obtain approval to create the plan and task files. Create and validate them,
+   summarize their paths, then end the turn. Wait for a later user message
+   explicitly requesting implementation of that plan.
+3. After that implementation request, create the plan integration worktree.
+   Create task worktrees from its current head as tasks become actionable and
+   delegate each to an implementer.
 4. Require review after every task and at approved high-risk checkpoints.
 5. A clean final task review makes it ready for integration. Merge reviewed
    task branches into the plan integration branch serially; only successful
@@ -134,7 +136,8 @@ handoff is in flight.
 - Ask the user whenever missing information affects requirements, scope,
   acceptance criteria, dependencies, architecture, integration, project
   structure, or another decision. Do not guess.
-- Plan approval authorizes only the task-to-plan integrations defined by the
+- A later explicit request to implement the created plan authorizes task work,
+  its recorded worktrees, and the task-to-plan integrations defined by the
   worktree-management guide. Do not deliver the plan branch, otherwise merge or
   rebase, push, remove worktrees, delete branches, overwrite, or reuse existing
   project artifacts unless the user or an applicable project policy authorizes

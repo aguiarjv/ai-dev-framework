@@ -14,9 +14,10 @@ plan.
 Record `planned_integration_worktree`, `planned_integration_branch`, and
 `delivery_branch` in `PLAN.md`. The integration worktree path must be
 `worktrees/<plan-id>/plan-integration`. Use `plan/<plan-id>` for the branch
-unless the target repository has an explicit branch-naming convention. Plan
-approval authorizes creating this isolated branch and merging cleanly reviewed
-task branches into it; it does not authorize delivery to the target branch.
+unless the target repository has an explicit branch-naming convention. Only a
+later explicit user request to implement the created plan authorizes creating
+this isolated branch and merging cleanly reviewed task branches into it; it
+does not authorize delivery to the target branch.
 
 ## Plan Assignments
 
@@ -25,12 +26,14 @@ The worktree path must be `worktrees/<plan-id>/<task-id>`. Use
 `task/<plan-id>/<task-id>` for the branch unless the target repository has an
 explicit branch-naming convention.
 
-Planning a path does not create it. Do not run worktree or branch creation
-before the user approves the plan.
+Planning a path does not create it. Approval to write plan files does not
+authorize worktree or branch creation. Wait for a later user message explicitly
+requesting implementation of the created plan.
 
 ## Create the Plan Integration Worktree
 
-1. Read the approved plan and target repository instructions.
+1. Confirm that the plan files exist and the user has since explicitly requested
+   implementation. Read the plan and target repository instructions.
 2. Confirm the plan's `worktrees/<plan-id>/` grouping folder, planned worktree
    path, and branch do not exist and the recorded baseline commit is still
    available.
