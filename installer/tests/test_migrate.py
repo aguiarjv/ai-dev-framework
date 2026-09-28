@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 
 INSTALLER_DIRECTORY = Path(__file__).resolve().parents[1]
+FRAMEWORK_ROOT = INSTALLER_DIRECTORY.parent
 sys.path.insert(0, str(INSTALLER_DIRECTORY))
 
 import install  # noqa: E402
@@ -23,6 +24,7 @@ import update  # noqa: E402
 
 class MigrationTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.version = (FRAMEWORK_ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.target = Path(self.temporary.name) / "workspace"
@@ -122,7 +124,7 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("`docs/adrs/repo-decision.md` | `repo-file`", text)
         self.assertTrue((self.project / "workspace-plans/done/finished/PLAN.md").is_file())
         manifest = json.loads((self.target / install.MANIFEST_PATH).read_text())
-        self.assertEqual("0.2.3", manifest["framework_version"])
+        self.assertEqual(self.version, manifest["framework_version"])
         self.assertIn("already migrated", self.run_migration(True))
 
     def test_collision_and_modified_install_stop_before_writes(self) -> None:
@@ -202,7 +204,7 @@ class MigrationTests(unittest.TestCase):
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         self.run_migration(True)
         upgraded = json.loads(manifest_path.read_text(encoding="utf-8"))
-        self.assertEqual("0.2.3", upgraded["framework_version"])
+        self.assertEqual(self.version, upgraded["framework_version"])
 
     def test_inventory_change_allows_migration_then_update(self) -> None:
         missing = ".agents/guides/commit-management.md"
@@ -222,7 +224,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(old_instructions, (self.target / "AGENTS.md").read_bytes())
         with contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(0, update.update(self.target, apply=True))
-        self.assertEqual("0.2.3", json.loads(manifest_path.read_text())["framework_version"])
+        self.assertEqual(self.version, json.loads(manifest_path.read_text())["framework_version"])
         self.assertTrue((self.target / missing).is_file())
 
 

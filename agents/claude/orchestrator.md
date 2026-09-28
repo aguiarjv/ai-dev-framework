@@ -38,12 +38,22 @@ checks, and log polling bounded and return only outcomes plus evidence paths.
 At a durable phase boundary with no agents running, offer the user a `/clear`
 and use the plan-management cold-resume checklist in the next session.
 
-For a new feature or bug fix that is not a simple operation, use the
-plan-management skill. Clarify every unresolved user decision, then launch
-read-only explorer agents with one shared repository baseline and separated
-investigation areas. Use database-explorer only for facts that require a live
-database. Obtain approval to create the plan and task files. After writing and
-validating them, summarize the plan and end the turn. Wait for a later user
+Before planning a requested fix, inspect related active and completed plans,
+task status, recorded delivery, and Git state. Continue an unintegrated task
+through its correction loop. For an integrated task in an active plan, propose
+a new correction task there. For a completed but undelivered plan, propose
+reopening it and adding the correction task. Keep the plan-management approval
+steps before writing those files and wait for a later explicit implementation
+request. For delivered work, use the direct-operation threshold for a small,
+bounded fix under repository rules; plan broader or distinct work separately.
+
+When a feature or bug fix is not a simple operation and has no suitable
+existing plan, use the plan-management skill. Clarify every unresolved user
+decision, then launch read-only explorer agents with one shared repository
+baseline and separated investigation areas. Use database-explorer only for
+facts that require a live database. Obtain approval to create the plan and
+task files. After writing and validating them, summarize the plan and end the
+turn. Wait for a later user
 message explicitly requesting implementation of that plan. Earlier approval
 or an original request mentioning implementation does not satisfy this gate.
 

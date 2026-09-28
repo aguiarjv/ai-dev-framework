@@ -56,6 +56,29 @@ Use the worktree-management skill for the Git operation. After creation, record
 the actual worktree, branch, head commit, and uncommitted-change state in the
 task-level `PROGRESS.md`.
 
+## Resume a Plan Integration Worktree
+
+For an approved follow-up correction in an existing plan, use its recorded
+integration branch and current head. Do not create a second integration branch
+from the original exploration baseline. Wait for the later explicit request to
+implement the correction task before restoring a removed checkout or creating
+the new task's worktree.
+
+Check `git worktree list`, the recorded integration path, branch, full head,
+and working-tree state. If the checkout is still registered at the recorded
+path, verify that it is clean and matches plan progress, then use it. If the
+checkout was removed but the recorded branch still exists at the recorded
+head, is not checked out elsewhere, and the recorded path is free, restore it
+with `git worktree add <integration-path> <integration-branch>`. Verify its
+branch and head after restoration and refresh plan progress. If the path or
+branch conflicts, the head differs, or the branch no longer exists, stop and
+resolve the discrepancy with the user. Do not reset, overwrite, or recreate
+the branch from a guessed commit.
+
+Create each new correction task's own worktree and branch from this verified
+integration head using the normal task creation procedure. Do not reuse a
+completed task's checkout or branch for a new task.
+
 ## Isolation
 
 Never assign two active tasks to the same worktree or branch. Do not let an

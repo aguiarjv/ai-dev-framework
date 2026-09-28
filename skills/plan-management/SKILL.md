@@ -13,6 +13,15 @@ they appear in the workspace's routing index.
 
 ## Route the Work
 
+- Follow-up fix: before starting a new plan, inspect related active and
+  completed plans, task status, recorded delivery, and Git state. Continue an
+  unintegrated task through its correction loop. For an integrated task in an
+  active plan, propose a new numbered correction task. For a completed but
+  undelivered plan, propose reopening it and adding that task. Keep the
+  existing approval boundary: obtain confirmation before writing the plan and
+  task changes, then wait for a later explicit implementation request. Use the
+  direct-operation threshold for a small delivered fix under repository rules;
+  use a new plan for broader or distinct delivered work.
 - New plan: read the guide's Clarify Before Creating, Project Exploration, and
   Creating a Plan sections. Resolve user decisions and one repository baseline,
   then obtain confirmation before writing plan files. Use read-only explorers
@@ -24,7 +33,8 @@ they appear in the workspace's routing index.
   implementation request, even if the original request mentioned implementation.
 - Start implementation: read the guide's Starting Implementation section.
   Proceed only after a later user message explicitly asks to implement the
-  created plan. Record that request in plan progress before creating worktrees.
+  created plan or approved follow-up correction task. Record that request in
+  plan progress before creating or restoring worktrees.
 - Resume or update: read Statuses and Managing Progress. Read the plan
   definition and progress, then only the task files relevant to current or next
   actions. Verify recorded worktree, branch, and head against Git before
@@ -35,9 +45,12 @@ they appear in the workspace's routing index.
   stay read-only. The orchestrator alone writes plan-level `PROGRESS.md` and
   serializes task integrations into the dedicated plan integration worktree,
   including for single-task plans.
-- Reopen or complete: read Statuses and Completing a Plan. Completed work is
-  terminal unless the user explicitly reopens it. Completion does not grant
-  authority to deliver, push, or clean up branches or worktrees.
+- Reopen or complete: read Statuses, Follow-up Corrections, and Completing a
+  Plan. Move an approved undelivered plan from `done/` to the active folder,
+  set it to `in-progress`, and clear its stale final review before adding the
+  correction task. Completed work is otherwise terminal unless the user
+  explicitly reopens it. Completion does not grant authority to deliver,
+  push, or clean up branches or worktrees.
 
 Do not invent requirements, acceptance evidence, dependencies, or missing user
 decisions. Keep task progress and plan summaries synchronized; use immutable

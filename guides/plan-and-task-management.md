@@ -20,7 +20,7 @@ breakdown and obtain the user's confirmation before creating files. `Open
 Questions` is only for accepted, non-blocking uncertainty.
 Confirmation here authorizes writing the plan and task files only. Starting
 implementation requires a separate, later user message explicitly requesting
-implementation of the created plan.
+implementation of the created plan or approved follow-up correction task.
 
 ## Structure
 
@@ -226,6 +226,57 @@ Keep exactly one `PLAN.md` Tasks-table row for every task folder. Its link must
 target that task's `TASK.md`, and `Depends on` must be `None` or a
 comma-separated list matching the task's `depends_on` frontmatter.
 
+## Follow-up Corrections
+
+Before creating a plan for a fix, inspect related active plans and
+`workspace-plans/done/`, their task progress, the recorded delivery state, and
+the repository state. A completed plan is not necessarily delivered. Use the
+current task's correction loop before integration. After task integration,
+prefer a new numbered correction task in the same active plan when the fix
+serves that plan's goal; keep completed task records intact. If that plan is
+completed but undelivered, propose reopening it and adding the correction
+task. For delivered work, use the direct-operation threshold for a small,
+bounded fix under the target repository's rules; plan broader or distinct
+work separately. Ask when the relationship or delivery state is uncertain.
+
+Apply the existing approval boundary to a proposed correction task: clarify
+its scope, acceptance criteria, dependencies, validation, and relevant paths;
+show the user the proposed change to the plan and task breakdown; and obtain
+confirmation before writing those files. Reuse existing exploration evidence
+only when it still describes the current repository; otherwise investigate
+the affected area without repeating unrelated plan exploration. A fix request
+by itself does not authorize creating a task worktree. Wait for a later
+explicit request to implement the created correction task before starting
+repository work. Confirmation to reopen a completed plan and add that task
+satisfies the explicit reopen requirement, but not the implementation gate.
+
+After approval, update an active plan in place. For a completed plan, first
+move its folder from `workspace-plans/done/<plan-id>/` back to
+`workspace-plans/<plan-id>/`; stop if the destination exists. Set plan status
+to `in-progress`, clear plan `latest_review`, record why it was reopened, and
+record the prior review path in `Integration` as history. Retain the earlier
+review artifact. Reassess and uncheck any plan completion criterion invalidated
+by the fix. Keep the original `approved_at`, exploration baseline, integration
+branch, and current integration head. Do not reset the branch to the old
+baseline.
+
+Add the task with the next unused three-digit ID, its own planned branch and
+worktree, and dependencies on completed tasks whose results it needs. Update
+the plan's Tasks table, related paths, definition timestamp, Task Status,
+and Next Actions. Initialize the new task as `not-started` with no actual
+worktree or branch. Preserve earlier completed tasks and their integration
+commits. Record the approval and pending follow-up implementation request in
+the plan progress `Implementation Request` section, then validate the plan.
+The next action waits for the later implementation request; do not create a
+branch or worktree yet.
+
+On that later request, verify the current plan integration branch and worktree
+against recorded progress, restore a removed checkout only as described in
+worktree-management, and create the correction task worktree from the current
+integration head. After integration, repeat combined validation and a final
+review of the new integration head before completing and archiving the plan.
+Reopening does not authorize delivery, pushing, or cleanup.
+
 ## Project Exploration
 
 Before finalizing a new plan and its tasks, the orchestrator launches explorer
@@ -367,6 +418,13 @@ dependent task worktrees only after their dependencies are integrated and
 complete. Delegate actionable tasks to implementers. A generic request to
 continue planning or an approval of the plan files is not an implementation
 request.
+
+For an approved follow-up correction task, the later implementation request
+authorizes restoring the existing plan integration checkout when needed and
+creating the new task worktree from its verified current head. Use the
+worktree-management skill's resume procedure rather than creating an
+integration branch from the original baseline. Record the follow-up request
+and its UTC time in plan progress before restoring or creating worktrees.
 
 ## Managing Progress
 

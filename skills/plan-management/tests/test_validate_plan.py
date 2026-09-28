@@ -22,6 +22,7 @@ class PlanFixture:
 
     def __init__(self, root: Path) -> None:
         self.project_root = root
+        self.task_ids = type(self).task_ids
         self.plan_dir = root / "workspace-plans" / "demo-plan"
         self.plan_dir.mkdir(parents=True)
         (self.plan_dir / "handoffs").mkdir()
@@ -45,8 +46,8 @@ class PlanFixture:
     ) -> None:
         statuses = statuses or {task_id: "not-started" for task_id in self.task_ids}
         dependencies = dependencies or {
-            "001-build": [],
-            "002-test": ["001-build"],
+            task_id: [self.task_ids[index - 1]] if index else []
+            for index, task_id in enumerate(self.task_ids)
         }
         plan_dependencies = plan_dependencies or dependencies
         task_blockers = task_blockers or {}
@@ -275,8 +276,8 @@ Current plan state.
 
         for task_id in self.task_ids:
             task_dir = self.plan_dir / "tasks" / task_id
-            task_dir.mkdir(parents=True)
-            (task_dir / "handoffs").mkdir()
+            task_dir.mkdir(parents=True, exist_ok=True)
+            (task_dir / "handoffs").mkdir(exist_ok=True)
             task_path = "src/app.py" if task_id == "001-build" else "tests/test_app.py"
             task_state = "existing" if task_id == "001-build" else "planned"
             task_use = "modify" if task_id == "001-build" else "create"
@@ -562,6 +563,48 @@ class PlanValidatorTests(unittest.TestCase):
             plan_criteria_checked=True,
         )
         self.assertEqual(errors, [])
+
+    def test_undelivered_completed_plan_accepts_new_correction_task(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task_id: "completed" for task_id in fixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            done_dir = fixture.plan_dir.parent / "done"
+            done_dir.mkdir()
+            archived_plan = done_dir / fixture.plan_dir.name
+            fixture.plan_dir.rename(archived_plan)
+            self.assertEqual(PlanValidator(archived_plan).run(), [])
+
+            archived_plan.rename(fixture.plan_dir)
+            fixture.task_ids += ("003-fix",)
+            fixture.write(
+                statuses={
+                    "001-build": "completed",
+                    "002-test": "completed",
+                    "003-fix": "not-started",
+                },
+                plan_status="in-progress",
+                plan_criteria_checked=False,
+                include_integration_review=False,
+            )
+
+            self.assertEqual(fixture.errors(), [])
+            progress = (fixture.plan_dir / "PROGRESS.md").read_text(encoding="utf-8")
+            self.assertIn("latest_review: null", progress)
+            self.assertIn("| `003-fix` | Continue 003-fix. |", progress)
+            self.assertTrue(
+                (
+                    fixture.project_root
+                    / "workspace-reviews/demo-plan/demo-plan-integration-review-001.md"
+                ).is_file()
+            )
+            old_task = (fixture.plan_dir / "tasks/002-test/PROGRESS.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(f'integrated_commit: "{"c" * 40}"', old_task)
 
     def test_completed_tasks_and_criteria_wait_for_integration_review(self) -> None:
         errors = self.run_fixture(

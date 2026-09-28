@@ -178,7 +178,10 @@ class InstallerCliTests(unittest.TestCase):
             manifest_path = target / install.MANIFEST_PATH
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual("ai-dev-framework", manifest["framework"])
-            self.assertEqual("0.2.3", manifest["framework_version"])
+            self.assertEqual(
+                (FRAMEWORK_ROOT / "VERSION").read_text(encoding="utf-8").strip(),
+                manifest["framework_version"],
+            )
             self.assertEqual(1, manifest["schema_version"])
             self.assertNotIn(install.MANIFEST_PATH.as_posix(), {
                 item["path"] for item in manifest["files"]

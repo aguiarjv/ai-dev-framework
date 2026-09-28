@@ -28,9 +28,9 @@ explicit branch-naming convention.
 
 Planning a path does not create it. Approval to write plan files does not
 authorize worktree or branch creation. Wait for a later user message explicitly
-requesting implementation of the created plan.
+requesting implementation of the created plan or approved follow-up task.
 
-## Create the Plan Integration Worktree
+## Create the Initial Plan Integration Worktree
 
 1. Confirm that the plan files exist and the user has since explicitly requested
    implementation. Read the plan and target repository instructions.
@@ -50,6 +50,18 @@ requesting implementation of the created plan.
 If the path or branch exists, stop and ask the user. Do not reuse, reset,
 delete, or overwrite it.
 
+## Restore a Plan Integration Worktree for a Follow-up Task
+
+After the user approves the correction task files and later explicitly
+requests implementation, inspect the existing plan's recorded integration
+path, branch, and full head against Git. If the registered checkout still
+exists, verify that it is clean and matches progress. If it was removed and
+the branch still points to the recorded head, is not checked out elsewhere,
+and the path is free, run `git worktree add <path> <existing-branch>` without
+`-b`. Verify the restored checkout and refresh plan progress. Stop on any
+path, branch, head, or worktree registration discrepancy; do not reset or
+recreate the branch from the original plan baseline.
+
 ## Create an Actionable Task Worktree
 
 1. Read the plan, task definition, task progress, and target repository
@@ -57,8 +69,9 @@ delete, or overwrite it.
 2. Confirm every dependency is integrated and completed, and resolve the
    current plan integration head as the base ref.
 3. Confirm the plan's `worktrees/<plan-id>/` grouping folder contains the
-   recorded plan integration worktree, then resolve the planned task path
-   relative to the managed project and confirm that task path does not exist.
+   verified plan integration worktree, restoring it first when authorized and
+   necessary. Resolve the planned task path relative to the managed project
+   and confirm that task path does not exist.
 4. Confirm the planned branch does not exist locally or in another worktree.
 5. Run a non-interactive `git worktree add -b <branch> <path> <base-ref>` from
    the repository checkout.
@@ -68,6 +81,8 @@ delete, or overwrite it.
 
 If the path or branch exists, or the correct base is uncertain, stop and ask
 the user. Do not reuse, reset, delete, or overwrite it.
+For a new correction task, create its own branch and worktree from the current
+integration head; do not assign a completed task's checkout or branch to it.
 
 ## Assignment Rules
 

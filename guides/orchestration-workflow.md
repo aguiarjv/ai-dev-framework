@@ -72,9 +72,38 @@ Use a fresh implementer session for a correction pass. Supply the applicable
 review and latest task handoff instead of reusing the full context of the agent
 that introduced the change.
 
+## Follow-up Fix Routing
+
+Before treating a fix request as a new plan, inspect related active and
+completed plans, task status, the recorded delivery state, and Git state. A
+completed plan may be archived before its integration branch is delivered.
+If the relationship to an earlier plan or delivery state is unclear, ask the
+user after checking the available records.
+
+- For a task still being implemented or reviewed, use its existing task and
+  correction loop. Do not create another task or worktree for that pass.
+- For a completed task in an active plan, propose the next numbered correction
+  task in that plan. Keep the completed task's review and integration history.
+- For a completed but undelivered plan, propose reopening that plan and adding
+  a correction task when the fix serves its existing goal. Repeat combined
+  validation and final integration review after the correction is integrated.
+- For delivered work, use the direct-operation threshold for a small, bounded
+  fix under the target repository's rules. Use a new plan when the work needs
+  broader investigation or coordination, or has a distinct goal.
+
+Follow the plan-management guide's approval steps before writing a correction
+task, and wait for a later explicit implementation request before creating its
+branch or worktree. A new correction task uses its own worktree. Reuse an
+existing plan integration checkout only after verifying its recorded state;
+follow worktree-management to restore it if it was removed. Do not assume that
+reopening a plan authorizes delivery, pushing, or cleanup.
+Use existing exploration evidence when it is still current and inspect only
+the affected area when new facts are needed.
+
 ## Standard Lifecycle
 
-For work that crosses the direct-execution threshold:
+For work that crosses the direct-execution threshold and has no suitable
+existing plan:
 
 1. Clarify the user's feature or bug-fix request with the plan-management
    skill. Never invent a product or project-shape decision.
@@ -108,6 +137,11 @@ For work that crosses the direct-execution threshold:
 13. Complete and archive the plan only after every task, review gate, plan
     criterion, required ADR, combined validation, and integration review is
     complete. Delivery to the target branch remains separately authorized.
+
+An approved follow-up correction task joins at step 6 after its later explicit
+implementation request, verification or restoration of the existing plan
+integration worktree, and creation of its own worktree from the current plan
+head. Steps 6-13 then apply to that task and plan.
 
 Reports are optional. Create one under `workspace-reports/` only when the user requests a
 report or the plan explicitly requires one.

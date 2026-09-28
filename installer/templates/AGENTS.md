@@ -91,7 +91,14 @@ the sole writer of plan-level progress.
 ## Development Workflow
 
 Simple operations may be performed directly under the threshold defined in the
-orchestration workflow. For work beyond that threshold:
+orchestration workflow. Before planning a fix, inspect related active and
+completed plans and the recorded delivery state. Continue an unintegrated
+task, add a correction task to an active plan, or propose reopening a completed
+but undelivered plan when the fix serves its goal. Keep the approval steps for
+the correction task and its later implementation request. For delivered work,
+use the direct-operation threshold for a small fix under repository rules and
+a new plan for broader or distinct work. For work beyond that threshold with
+no suitable existing plan:
 
 1. Clarify decisions and use plan-management to explore the project and
    propose a plan and tasks.
@@ -108,6 +115,10 @@ orchestration workflow. For work beyond that threshold:
 6. Complete required ADRs, run combined validation, and obtain a clean final
    review of the plan integration head before completing and archiving the
    plan. Create reports only when requested or required by the plan.
+
+An approved follow-up correction task joins at step 3 after its later explicit
+implementation request. Verify or restore the existing integration checkout,
+then create its task worktree from the current plan head.
 
 At plan approval and after a task integration, the orchestrator may offer a
 context reset once state is durable and no agents are running. The user runs
@@ -136,9 +147,9 @@ handoff is in flight.
 - Ask the user whenever missing information affects requirements, scope,
   acceptance criteria, dependencies, architecture, integration, project
   structure, or another decision. Do not guess.
-- A later explicit request to implement the created plan authorizes task work,
-  its recorded worktrees, and the task-to-plan integrations defined by the
-  worktree-management guide. Do not deliver the plan branch, otherwise merge or
-  rebase, push, remove worktrees, delete branches, overwrite, or reuse existing
-  project artifacts unless the user or an applicable project policy authorizes
-  it.
+- A later explicit request to implement the created plan or an approved
+  follow-up correction task authorizes its task work, recorded worktrees, and
+  task-to-plan integrations defined by the worktree-management guide. Do not
+  deliver the plan branch, otherwise merge or rebase, push, remove worktrees,
+  delete branches, overwrite, or reuse existing project artifacts unless the
+  user or an applicable project policy authorizes it.
