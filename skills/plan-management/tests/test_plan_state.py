@@ -59,6 +59,27 @@ class PlanStateTests(unittest.TestCase):
         self.assertTrue(self.transition(accept_all=True, dry_run=True))
         self.assertEqual(before, progress.read_bytes())
 
+    def test_transition_with_completed_task_keeps_prior_reviews_available(self) -> None:
+        self.fixture.write(
+            statuses={"001-build": "completed", "002-test": "ready-for-review"},
+            plan_status="in-progress",
+        )
+        self.review = "workspace-reviews/demo-plan/demo-plan-002-test-review-001.md"
+        self.handoff = (
+            "workspace-plans/demo-plan/tasks/002-test/handoffs/"
+            "002-reviewer-to-orchestrator.md"
+        )
+        self.fixture._write_review("002-test", "clean")
+        (self.fixture.project_root / self.handoff).write_text(
+            "# Clean reviewer handoff\n", encoding="utf-8"
+        )
+        self.assertEqual([], self.fixture.errors())
+        self.assertTrue(MODULE.transition_ready_for_integration(
+            self.fixture.plan_dir, "002-test", self.review, self.handoff,
+            accept_all=True,
+        ))
+        self.assertEqual([], self.fixture.errors())
+
     def test_unchecked_criteria_require_explicit_acceptance(self) -> None:
         with self.assertRaisesRegex(MODULE.TransitionError, "Acceptance criteria"):
             self.transition(accept_all=False)

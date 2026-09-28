@@ -201,9 +201,10 @@ def transition_ready_for_integration(
         staged_plan = staged_project / "workspace-plans" / plan_dir.name
         staged_plan.parent.mkdir(parents=True)
         shutil.copytree(plan_dir, staged_plan, symlinks=True)
-        staged_review = staged_project / review
-        staged_review.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(project / review, staged_review)
+        # Validation also resolves reviews already referenced by completed tasks.
+        source_reviews = project / "workspace-reviews" / plan_dir.name
+        staged_reviews = staged_project / "workspace-reviews" / plan_dir.name
+        shutil.copytree(source_reviews, staged_reviews)
         for path, content in updates.items():
             (staged_plan / path.relative_to(plan_dir)).write_text(content, encoding="utf-8")
         validate(staged_plan)
