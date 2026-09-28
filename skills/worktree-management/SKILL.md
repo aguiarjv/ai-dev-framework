@@ -111,4 +111,29 @@ Internal task-to-plan integration is authorized only as described above. This
 skill does not authorize merging or rebasing the plan integration branch into
 `delivery_branch`, pushing, branch deletion, or worktree removal. Perform those
 operations only after explicit user instruction or an applicable project rule
-authorizes them, and verify that required work is preserved first.
+authorizes them. Do not move merged worktrees into another folder or clean them
+up automatically when a task or plan completes.
+
+For an authorized task worktree removal:
+
+1. Confirm the task is `completed`, its reviewed head and `integrated_commit`
+   are recorded, and the task result is preserved on the plan integration
+   branch or a verified delivery branch.
+2. Confirm the exact registered worktree path, branch, and head with Git.
+   Inspect tracked, untracked, and ignored files and preserve anything needed.
+3. Run `git worktree remove <path>` only for a clean checkout, without
+   `--force`. Stop if Git refuses; do not delete the directory manually.
+4. Record the cleanup time, path, branch, and final head in task progress.
+   Keep the recorded worktree assignment and commits as history.
+
+Branch deletion must be covered by the cleanup authorization. Verify that its
+tip still matches the recorded reviewed head and is preserved in the intended
+destination. A task branch may remain after its worktree is removed. Use Git's
+safe branch deletion only when its merged history is confirmed; do not
+force-delete a branch after a failed check. Record branch cleanup in progress.
+
+Keep the plan integration worktree until the final review and authorized
+delivery to `delivery_branch` are complete and verified. Apply the same
+clean-checkout and authorization checks to its removal and the branch checks
+to any branch deletion. Record any cleanup in plan progress. Never remove the
+initial repository checkout.

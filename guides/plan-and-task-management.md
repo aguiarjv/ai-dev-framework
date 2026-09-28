@@ -416,6 +416,15 @@ the plan integration branch. When two or more tasks run in parallel, each must
 use a distinct Git worktree and branch; parallel agents must not edit the same
 checkout or the integration worktree.
 
+After authorized worktree cleanup, keep `worktree`, `branch`, `head_commit`,
+`integrated_commit`, and `uncommitted_changes` in task progress as the last
+recorded assignment and state; do not reset them to `null`. Record the cleanup
+time, path, branch, and final head in `Work Completed`, and refresh `updated`.
+Likewise, keep the plan's integration assignment and last recorded state in
+plan progress after its worktree is removed, record that cleanup in
+`Integration`, and refresh `updated`. Cleanup does not change a completed
+status or imply permission to reopen the work.
+
 Update the task-level `PROGRESS.md` after a meaningful checkpoint and before a
 handoff. Keep it concise and make the next action specific enough that another
 agent can resume without reconstructing prior work.
@@ -504,6 +513,8 @@ so their definitions, decisions, validation, and progress history remain
 available.
 If the destination already exists, stop and ask rather than merging or
 overwriting it. Validate before and after the move.
+This archives the plan records, not its Git worktrees. Authorized worktree
+cleanup can be recorded in the archived progress files later.
 
 Do not complete a plan until every required final review is clean and every ADR
 required by the approved plan exists and reflects the accepted decision.

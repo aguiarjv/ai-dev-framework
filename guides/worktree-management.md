@@ -108,6 +108,33 @@ recorded worktrees and merges from cleanly reviewed task branches into its
 integration branch. It does not authorize merging or rebasing the plan branch
 into `delivery_branch`, pushing, deleting branches, or removing worktrees.
 
-Remove a task worktree or branch only when the user explicitly requests it or
-an applicable project rule already authorizes cleanup. Resolve the exact path
-and confirm that required work is preserved before any removal.
+Keep `worktrees/` for active checkouts. Do not move a merged worktree to an
+archive folder: it remains a registered Git worktree and its recorded path
+changes. Completed plan files belong in `workspace-plans/done/`; that archive
+does not contain Git checkouts. Neither task integration nor plan completion
+automatically triggers cleanup.
+
+Remove a task worktree only when the user explicitly requests cleanup or an
+applicable project rule already authorizes it. First confirm that the task is
+completed, its reviewed head and `integrated_commit` are recorded, and the
+result is preserved on the plan integration branch or a verified delivery
+branch. Resolve the exact worktree path, branch, and head against Git; inspect
+tracked, untracked, and ignored files for anything that must be kept. Remove
+the clean checkout with `git worktree remove <path>` without `--force`. If Git
+refuses, stop and resolve the reason rather than deleting its directory
+manually.
+
+Treat branch deletion as a separate cleanup action that the user instruction
+or project rule must also cover. Retain the task branch when it is useful for
+follow-up work. Before authorized deletion, verify that its tip still matches
+the recorded reviewed head and is contained in the intended destination's
+history. If the target repository's integration method does not preserve
+ancestry, verify the result by that repository's policy and keep the branch
+when preservation is uncertain. Do not force-delete a branch to bypass a failed
+safety check. Record branch cleanup in the relevant task or plan progress file.
+
+Keep the plan integration worktree through final review and delivery. After
+delivery to `delivery_branch` is authorized, completed, and verified, the same
+authorization and clean-checkout checks apply to removing that worktree. Apply
+the branch checks before deleting its branch. Leave the initial repository
+checkout in place.
