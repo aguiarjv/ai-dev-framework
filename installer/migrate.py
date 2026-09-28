@@ -108,9 +108,9 @@ def plan_artifact(text: str, plan_id: str) -> str:
         if re.match(r"^(latest_handoff|latest_review):\s", line):
             line = re.sub(r'(?<=")(?:(?:plans)|(?:reviews))/',
                           lambda match: "workspace-" + match.group(), line, count=1)
-        elif "| `project-docs` |" in line or (
+        elif re.search(r"\|\s*`?project-docs`?\s*\|", line) or (
             section == "Architecture Decisions" and line.startswith("|")
-            and re.search(r"`docs/adrs/[^`]+`", line)
+            and re.search(r"(?<![\w-])docs/adrs/[^\s|`]+", line)
         ):
             line = re.sub(r"(?<![\w-])docs/", "workspace-docs/", line)
         for folder in ("plans", "reviews"):

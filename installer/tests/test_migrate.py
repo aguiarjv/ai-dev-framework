@@ -81,10 +81,12 @@ class MigrationTests(unittest.TestCase):
                 f'latest_review: "reviews/{plan_id}/review.md"\n'
                 f'latest_handoff: "plans/{plan_id}/handoffs/one.md"\n'
                 "| `docs/architecture.md` | `project-docs` | existing |\n"
+                "| docs/schema.md | project-docs | existing |\n"
                 "| `docs/source.md` | `repo-file` | existing |\n"
                 "| `docs/adrs/repo-decision.md` | `repo-file` | existing |\n"
                 "## Architecture Decisions\n"
-                "| Decision | `docs/adrs/0001-design.md` |\n",
+                "| Decision | `docs/adrs/0001-design.md` |\n"
+                "| Another decision | yes | docs/adrs/0001-design.md | Reason |\n",
                 encoding="utf-8",
             )
         checkout = project / "worktrees" / "main" / "docs"
@@ -119,7 +121,9 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("workspace-reviews/example/review.md", text)
         self.assertIn("workspace-plans/example/handoffs/one.md", text)
         self.assertIn("`workspace-docs/architecture.md`", text)
+        self.assertIn("| workspace-docs/schema.md | project-docs |", text)
         self.assertIn("`workspace-docs/adrs/0001-design.md`", text)
+        self.assertIn("| yes | workspace-docs/adrs/0001-design.md |", text)
         self.assertIn("`docs/source.md` | `repo-file`", text)
         self.assertIn("`docs/adrs/repo-decision.md` | `repo-file`", text)
         self.assertTrue((self.project / "workspace-plans/done/finished/PLAN.md").is_file())
