@@ -18,6 +18,7 @@ sys.path.insert(0, str(INSTALLER_DIRECTORY))
 
 import install  # noqa: E402
 import migrate  # noqa: E402
+import update  # noqa: E402
 
 
 class MigrationTests(unittest.TestCase):
@@ -121,7 +122,7 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("`docs/adrs/repo-decision.md` | `repo-file`", text)
         self.assertTrue((self.project / "workspace-plans/done/finished/PLAN.md").is_file())
         manifest = json.loads((self.target / install.MANIFEST_PATH).read_text())
-        self.assertEqual("0.2.2", manifest["framework_version"])
+        self.assertEqual("0.2.3", manifest["framework_version"])
         self.assertIn("already migrated", self.run_migration(True))
 
     def test_collision_and_modified_install_stop_before_writes(self) -> None:
@@ -201,7 +202,28 @@ class MigrationTests(unittest.TestCase):
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         self.run_migration(True)
         upgraded = json.loads(manifest_path.read_text(encoding="utf-8"))
-        self.assertEqual("0.2.2", upgraded["framework_version"])
+        self.assertEqual("0.2.3", upgraded["framework_version"])
+
+    def test_inventory_change_allows_migration_then_update(self) -> None:
+        missing = ".agents/guides/commit-management.md"
+        (self.target / missing).unlink()
+        manifest_path = self.target / install.MANIFEST_PATH
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        data["files"] = [item for item in data["files"] if item["path"] != missing]
+        manifest_path.write_text(json.dumps(data), encoding="utf-8")
+        old_manifest = manifest_path.read_bytes()
+        old_instructions = (self.target / "AGENTS.md").read_bytes()
+
+        preview = self.run_migration(False)
+        self.assertIn("run installer/update.py after migration", preview)
+        self.run_migration(True)
+        self.assertTrue((self.project / "workspace-docs").is_dir())
+        self.assertEqual(old_manifest, manifest_path.read_bytes())
+        self.assertEqual(old_instructions, (self.target / "AGENTS.md").read_bytes())
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(0, update.update(self.target, apply=True))
+        self.assertEqual("0.2.3", json.loads(manifest_path.read_text())["framework_version"])
+        self.assertTrue((self.target / missing).is_file())
 
 
 if __name__ == "__main__":

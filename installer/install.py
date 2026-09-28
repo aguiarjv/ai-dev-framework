@@ -350,7 +350,7 @@ def render_skill(text: str, source_path: str, *, for_claude: bool) -> str:
     body = "".join(lines[closing_index + 1 :]).lstrip("\r\n")
     if for_claude:
         body = body.replace("../../guides/", "../../../.agents/guides/")
-    marker = f"<!-- Generated from {source_path}. Edit the framework source and reinstall. -->"
+    marker = f"<!-- Generated from {source_path}. Edit the framework source and run the updater. -->"
     return f"{prefix}\n{marker}\n\n{body}"
 
 

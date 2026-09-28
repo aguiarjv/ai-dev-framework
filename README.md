@@ -26,7 +26,17 @@ Preview the full operation without writing files:
 
 The installer is idempotent when generated files are unchanged. It preflights
 the whole target and refuses to write anything when an existing destination
-differs. The base installer has no force or update mode.
+differs. For an already installed workspace, preview the update with:
+
+```bash
+python3 installer/update.py --target /path/to/ai-workspace
+```
+
+After reviewing the changes, add `--apply`. The updater checks the manifest
+and every installed framework file before writing. It stops on local edits or
+path conflicts, adds new managed files, and removes obsolete managed files only
+when unchanged. It leaves managed projects and worktrees untouched. Interrupted
+updates can be recovered by rerunning with `--apply`.
 
 To preview migration of a previously installed workspace, run:
 
@@ -34,9 +44,11 @@ To preview migration of a previously installed workspace, run:
 python3 installer/migrate.py --target /path/to/ai-workspace
 ```
 
-After resolving any reported conflicts, add `--apply`. The migration updates
-installed framework files, renames managed-project metadata folders, and
-reports project-authored references that may need review.
+After resolving any reported conflicts, add `--apply`. The migration renames
+managed-project metadata folders and reports project-authored references that
+may need review. When the old and current managed-file inventories match, it
+also updates framework files. Otherwise, run the general updater after the
+migration to finish the framework update.
 
 ## Goals
 

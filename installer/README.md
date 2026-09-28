@@ -51,6 +51,14 @@ contain unrelated files. All destinations are checked before writing; a
 differing file, symlink, invalid manifest, or non-directory path component
 aborts the install without overwriting anything.
 
+For an installed workspace, preview a routine framework update with
+`python3 installer/update.py --target /path/to/ai-workspace`. Add `--apply`
+after reviewing the file changes. The updater verifies the installed manifest
+and managed files, stops on local edits or path conflicts, adds new framework
+files, and removes obsolete ones only if unchanged. It updates the manifest
+last and can recover an interrupted update when rerun with `--apply`. It does
+not change managed projects or worktrees.
+
 For an existing installation, preview the workspace naming migration with
 `python3 installer/migrate.py --target /path/to/ai-workspace`. Add `--apply`
 after reviewing its moves, file updates, and references marked `REVIEW`.
@@ -58,7 +66,9 @@ The migration verifies installed files against the existing manifest, stops
 on folder collisions, and keeps the `worktrees/` checkouts untouched. `REVIEW`
 lines identify references the tool cannot safely classify; they may refer to
 files inside a checkout. Rerunning `--apply` after an interruption restores
-the previous state before retrying.
+the previous state before retrying. If the installed file inventory differs
+from the current framework, the migration changes only project metadata;
+run `update.py` afterward to update framework files.
 
 The installer copies native agent definitions to `.codex/agents/` and
 `.claude/agents/`, guides to `.agents/guides/`, and generated copies of each

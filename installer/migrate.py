@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import re
@@ -16,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import install
+import update as framework_update
 
 
 FOLDERS = ("docs", "plans", "scripts", "reviews", "reports")
@@ -209,49 +209,13 @@ def project_changes(target: Path) -> tuple[list[tuple[Path, Path]], list[FileCha
     return moves, changes, warnings
 
 
-def installed_changes(target: Path, actions: list[install.InstallAction]) -> list[FileChange]:
-    manifest_path = target / install.MANIFEST_PATH
-    data = json.loads(regular_bytes(manifest_path))
-    if (not isinstance(data, dict) or data.get("framework") != install.FRAMEWORK_NAME or
-            data.get("schema_version") != install.MANIFEST_SCHEMA_VERSION or
-            not isinstance(data.get("files"), list)):
-        raise MigrationError("Unsupported installed framework manifest")
-    expected = {action.relative_path.as_posix(): action for action in actions}
-    old: dict[str, str] = {}
-    for item in data["files"]:
-        if not isinstance(item, dict) or set(item) != {"path", "sha256"}:
-            raise MigrationError("Invalid installed file inventory")
-        name, digest = item["path"], item["sha256"]
-        if not isinstance(name, str) or not isinstance(digest, str):
-            raise MigrationError("Invalid installed file inventory")
-        safe_relative(name)
-        if name in old or not re.fullmatch(r"[0-9a-f]{64}", digest):
-            raise MigrationError("Duplicate path or invalid checksum in manifest")
-        old[name] = digest
-    if set(old) != set(expected):
-        raise MigrationError("Installed file inventory differs from this migration's supported layout")
-    changes = []
-    for name, action in expected.items():
-        relative = safe_relative(name)
-        parent = target
-        for part in relative.parts[:-1]:
-            parent = parent / part
-            if parent.is_symlink():
-                raise MigrationError(f"Installed framework parent is a symlink: {parent}")
-        path = target / relative
-        original = regular_bytes(path)
-        if hashlib.sha256(original).hexdigest() != old[name]:
-            raise MigrationError(f"Installed framework file was modified: {path}")
-        if original != action.content:
-            changes.append(FileChange(path, path, action.content))
-    return changes
-
-
-def backup_and_apply(target: Path, moves: list[tuple[Path, Path]], changes: list[FileChange], manifest: bytes) -> None:
+def backup_and_apply(target: Path, moves: list[tuple[Path, Path]], changes: list[FileChange], manifest: bytes | None) -> None:
     journal_dir = target / JOURNAL
     journal_dir.mkdir(mode=0o700)
     manifest_path = target / install.MANIFEST_PATH
-    all_changes = [*changes, FileChange(manifest_path, manifest_path, manifest)]
+    all_changes = [*changes]
+    if manifest is not None:
+        all_changes.append(FileChange(manifest_path, manifest_path, manifest))
     records = []
     try:
         for index, change in enumerate(all_changes):
@@ -305,39 +269,55 @@ def migrate(target: Path, apply: bool) -> int:
         raise MigrationError(f"Target must be a regular directory: {target}")
     if (target / JOURNAL).is_symlink():
         raise MigrationError(f"Migration journal is a symlink: {target / JOURNAL}")
+    update_journal = target / framework_update.JOURNAL
+    if update_journal.exists() or update_journal.is_symlink():
+        raise MigrationError("An interrupted framework update must be recovered first")
     if (target / JOURNAL).exists():
         if not apply:
             raise MigrationError(f"Interrupted migration found; run with --apply to recover: {target / JOURNAL}")
         recover(target)
         print("Recovered an interrupted migration; checking the workspace again.")
     actions = install.build_actions()
-    installed = installed_changes(target, actions)
-    moves, project_files, warnings = project_changes(target)
     version = (install.framework_root() / "VERSION").read_text(encoding="utf-8").strip()
-    manifest = install.manifest_content(install.framework_root(), actions, version)
-    old_manifest = regular_bytes(target / install.MANIFEST_PATH)
-    manifest_current = (
-        install.validate_existing_manifest(target / install.MANIFEST_PATH, actions, version)
-        == "valid"
-    )
-    if not moves and not installed and not project_files and manifest_current:
+    try:
+        update_plan = framework_update.plan_update(target, actions, version)
+        _, old_inventory, old_manifest = framework_update.load_manifest(target)
+    except framework_update.UpdateError as error:
+        raise MigrationError(str(error)) from error
+    same_inventory = set(old_inventory) == {action.relative_path.as_posix() for action in actions}
+    installed: list[FileChange] = []
+    if same_inventory:
+        for change in update_plan.changes:
+            if change.state == "UPDATE":
+                assert change.content is not None
+                installed.append(FileChange(target / change.path, target / change.path, change.content))
+    moves, project_files, warnings = project_changes(target)
+    manifest = update_plan.new_manifest if same_inventory else None
+    if not moves and not installed and not project_files and update_plan.new_manifest is None:
         for warning in warnings:
             print(warning)
         print("Workspace is already migrated.")
+        return 0
+    if not same_inventory and not moves and not project_files:
+        for warning in warnings:
+            print(warning)
+        print("Workspace layout is already migrated; run installer/update.py next.")
         return 0
     for old, new in moves:
         print(f"MOVE {old.relative_to(target)} -> {new.relative_to(target)}")
     for change in [*installed, *project_files]:
         print(f"UPDATE {change.destination.relative_to(target)}")
-    if old_manifest != manifest:
+    if manifest is not None and old_manifest != manifest:
         print(f"UPDATE {install.MANIFEST_PATH}")
+    if not same_inventory:
+        print("Framework files will remain at their installed version; run installer/update.py after migration.")
     for warning in warnings:
         print(warning)
     if not apply:
         print("Preview complete; use --apply to migrate.")
         return 0
     backup_and_apply(target, moves, [*installed, *project_files], manifest)
-    print("Migration complete.")
+    print("Migration complete." if same_inventory else "Migration complete; run installer/update.py next.")
     return 0
 
 
@@ -348,7 +328,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         return migrate(args.target, args.apply)
-    except (MigrationError, OSError, UnicodeError, json.JSONDecodeError, install.InstallError) as error:
+    except (MigrationError, framework_update.UpdateError, OSError, UnicodeError, json.JSONDecodeError, install.InstallError) as error:
         print(f"Migration stopped: {error}", file=sys.stderr)
         return 2
 
