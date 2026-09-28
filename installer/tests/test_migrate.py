@@ -127,9 +127,21 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("`docs/source.md` | `repo-file`", text)
         self.assertIn("`docs/adrs/repo-decision.md` | `repo-file`", text)
         self.assertTrue((self.project / "workspace-plans/done/finished/PLAN.md").is_file())
+        archived = (self.project / "workspace-plans/done/finished/PLAN.md").read_text()
+        self.assertIn("workspace-plans/done/finished/handoffs/one.md", archived)
+        self.assertNotIn("workspace-plans/finished/handoffs/one.md", archived)
         manifest = json.loads((self.target / install.MANIFEST_PATH).read_text())
         self.assertEqual(self.version, manifest["framework_version"])
         self.assertIn("already migrated", self.run_migration(True))
+
+    def test_archived_plan_repairs_existing_self_references(self) -> None:
+        content = (
+            "workspace-plans/finished/PLAN.md\n"
+            "The old workspace-plans/finished/ path is absent.\n"
+        )
+        revised = migrate.plan_artifact(content, "finished", archived=True)
+        self.assertIn("workspace-plans/done/finished/PLAN.md", revised)
+        self.assertIn("The old workspace-plans/finished/ path is absent.", revised)
 
     def test_collision_and_modified_install_stop_before_writes(self) -> None:
         (self.project / "workspace-docs").mkdir()

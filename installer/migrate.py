@@ -96,7 +96,7 @@ def project_instructions(text: str) -> str:
     return result.replace(OLD_APPROVAL_RULE, NEW_IMPLEMENTATION_RULE)
 
 
-def plan_artifact(text: str, plan_id: str) -> str:
+def plan_artifact(text: str, plan_id: str, *, archived: bool = False) -> str:
     lines = []
     section = ""
     for line in text.splitlines(keepends=True):
@@ -114,8 +114,23 @@ def plan_artifact(text: str, plan_id: str) -> str:
         ):
             line = re.sub(r"(?<![\w-])docs/", "workspace-docs/", line)
         for folder in ("plans", "reviews"):
-            line = re.sub(rf"(?<![\w-]){folder}/{re.escape(plan_id)}/",
-                          f"workspace-{folder}/{plan_id}/", line)
+            destination = (
+                f"workspace-plans/done/{plan_id}/"
+                if folder == "plans" and archived
+                else f"workspace-{folder}/{plan_id}/"
+            )
+            line = re.sub(
+                rf"(?<![\w-]){folder}/{re.escape(plan_id)}/",
+                destination, line,
+            )
+        if archived and not (
+            re.search(r"\bold\b", line, re.IGNORECASE)
+            and re.search(r"\babsent\b", line, re.IGNORECASE)
+        ):
+            line = re.sub(
+                rf"(?<![\w-])workspace-plans/{re.escape(plan_id)}/",
+                f"workspace-plans/done/{plan_id}/", line,
+            )
         lines.append(line)
     return "".join(lines)
 
@@ -170,7 +185,10 @@ def project_changes(target: Path) -> tuple[list[tuple[Path, Path]], list[FileCha
                 original = regular_bytes(source)
                 relative = source.relative_to(plan_root)
                 plan_id = relative.parts[1] if relative.parts[0] == "done" and len(relative.parts) > 1 else relative.parts[0]
-                revised = plan_artifact(original.decode("utf-8"), plan_id).encode("utf-8")
+                revised = plan_artifact(
+                    original.decode("utf-8"), plan_id,
+                    archived=relative.parts[0] == "done",
+                ).encode("utf-8")
                 destination = project / "workspace-plans" / relative
                 if revised != original:
                     changes.append(FileChange(source, destination, revised))
@@ -188,7 +206,9 @@ def project_changes(target: Path) -> tuple[list[tuple[Path, Path]], list[FileCha
                 if folder in ("plans", "workspace-plans") and source.suffix == ".md":
                     relative = source.relative_to(metadata)
                     plan_id = relative.parts[1] if relative.parts[0] == "done" and len(relative.parts) > 1 else relative.parts[0]
-                    text = plan_artifact(text, plan_id)
+                    text = plan_artifact(
+                        text, plan_id, archived=relative.parts[0] == "done",
+                    )
                 display = project / f"workspace-{folder}" / source.relative_to(metadata) if folder in FOLDERS else source
                 for number, line in enumerate(text.splitlines(), 1):
                     if OLD_PATH.search(line) or (
