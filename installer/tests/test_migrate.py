@@ -116,7 +116,7 @@ class MigrationTests(unittest.TestCase):
         self.assertIn("`docs/adrs/repo-decision.md` | `repo-file`", text)
         self.assertTrue((self.project / "workspace-plans/done/finished/PLAN.md").is_file())
         manifest = json.loads((self.target / install.MANIFEST_PATH).read_text())
-        self.assertEqual("0.2.0", manifest["framework_version"])
+        self.assertEqual("0.2.1", manifest["framework_version"])
         self.assertIn("already migrated", self.run_migration(True))
 
     def test_collision_and_modified_install_stop_before_writes(self) -> None:
@@ -196,7 +196,7 @@ class MigrationTests(unittest.TestCase):
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         self.run_migration(True)
         upgraded = json.loads(manifest_path.read_text(encoding="utf-8"))
-        self.assertEqual("0.2.0", upgraded["framework_version"])
+        self.assertEqual("0.2.1", upgraded["framework_version"])
 
 
 if __name__ == "__main__":

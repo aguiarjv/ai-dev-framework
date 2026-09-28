@@ -14,6 +14,12 @@ agents, guides, and skills that can be installed into other projects.
 - Follow `guides/commit-management.md` and use the `commit-management` skill
   whenever creating, amending, squashing, merging, reverting, or proposing a
   Git commit.
+- Every Git commit that changes this framework must update the root `VERSION`
+  file in the same commit to a `MAJOR.MINOR.PATCH` version greater than the
+  version in each parent commit. Increment the patch version by default; use a
+  minor or major increment when warranted. This includes documentation, test,
+  merge, and revert commits. For amendments and squashes, check the resulting
+  commit against its parents.
 
 ## Repository Roles
 
