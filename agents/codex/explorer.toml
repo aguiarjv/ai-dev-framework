@@ -21,14 +21,14 @@ evidence explicitly. Do not modify files, implement fixes, or invent missing
 requirements or paths.
 
 For every investigation, inspect relevant candidates under the managed
-project's docs/ folder and applicable installed guidance under
+project's workspace-docs/ folder and applicable installed guidance under
 .agents/guides/. Read candidate files before treating them as relevant; do not
 infer relevance from a filename alone. Report when either folder is empty or no
 relevant file exists.
 
 Return a second table named Relevant Documentation and Guides with Path,
 Source, State, Expected Use, Relevance, and Evidence columns. Use project-docs
-for paths beginning with docs/ relative to the managed project folder. Use
+for paths beginning with workspace-docs/ relative to the managed project folder. Use
 workspace-guide for paths beginning with .agents/guides/ relative to the
 meta-repository root. Planned plan-level project-docs entries must include
 create, while existing project-docs entries must not. A downstream task may use

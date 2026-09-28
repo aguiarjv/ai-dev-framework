@@ -5,7 +5,7 @@ description: Create, resume, update, and complete structured plans and tasks in 
 
 # Plan Management
 
-Use this skill for a managed project's `plans/` directory. The
+Use this skill for a managed project's `workspace-plans/` directory. The
 [Plan and Task Management guide](../../guides/plan-and-task-management.md) is
 the canonical lifecycle and schema reference; read its relevant sections for
 the operation at hand. Do not load unrelated workspace guides merely because
@@ -98,10 +98,10 @@ result before writing:
 
 ```text
 python3 .agents/skills/plan-management/scripts/plan_state.py \
-  projects/<project-name>/plans/<plan-id> transition <task-id> \
+  projects/<project-name>/workspace-plans/<plan-id> transition <task-id> \
   ready-for-integration \
-  --review reviews/<plan-id>/<review-file>.md \
-  --handoff plans/<plan-id>/tasks/<task-id>/handoffs/<handoff-file>.md \
+  --review workspace-reviews/<plan-id>/<review-file>.md \
+  --handoff workspace-plans/<plan-id>/tasks/<task-id>/handoffs/<handoff-file>.md \
   --accept-all --dry-run
 ```
 

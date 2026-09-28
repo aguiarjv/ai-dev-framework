@@ -60,20 +60,21 @@ Each managed project under `projects/<project-name>/` uses this structure:
 AGENTS.md
 CLAUDE.md
 README.md
-docs/
+workspace-docs/
   adrs/
-plans/
+workspace-plans/
   done/
-scripts/
+workspace-scripts/
 worktrees/
   <default-branch-name>/
-reviews/
-reports/
+workspace-reviews/
+workspace-reports/
 ```
 
 The initial repository checkout belongs in
 `worktrees/<default-branch-name>/`. Do not create README files inside the
-metadata folders `docs/`, `plans/`, `scripts/`, `worktrees/`, `reviews/`, or
-`reports/`.
+metadata folders `workspace-docs/`, `workspace-plans/`,
+`workspace-scripts/`, `worktrees/`, `workspace-reviews/`, or
+`workspace-reports/`.
 
 Implement installer behavior only in small steps approved by the user.

@@ -23,7 +23,7 @@ the delegated lifecycle.
 
 Standalone project documentation follows the installed
 `documentation-management` skill. The orchestrator may synthesize documents
-under the managed project's `docs/` folder from user-provided information or
+under the managed project's `workspace-docs/` folder from user-provided information or
 read-only explorer findings without creating an implementation worktree. Use
 the standard lifecycle when the request also requires repository changes or
 otherwise exceeds that bounded documentation workflow.
@@ -101,14 +101,14 @@ For work that crosses the direct-execution threshold:
    implementation and review cycle, not directly in the integration worktree.
 10. Repeat implementation, review, and integration until every task passes or
     the plan becomes blocked.
-11. Create or update accepted ADRs required by the plan under `docs/adrs/`.
+11. Create or update accepted ADRs required by the plan under `workspace-docs/adrs/`.
 12. Run combined validation and a final read-only review of the exact plan
     integration head.
 13. Complete and archive the plan only after every task, review gate, plan
     criterion, required ADR, combined validation, and integration review is
     complete. Delivery to the target branch remains separately authorized.
 
-Reports are optional. Create one under `reports/` only when the user requests a
+Reports are optional. Create one under `workspace-reports/` only when the user requests a
 report or the plan explicitly requires one.
 
 ## Delegation Contract

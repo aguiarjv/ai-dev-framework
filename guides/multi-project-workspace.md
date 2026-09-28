@@ -20,15 +20,15 @@ projects/
     AGENTS.md
     CLAUDE.md
     README.md
-    docs/
+    workspace-docs/
       adrs/
-    plans/
+    workspace-plans/
       done/
-    scripts/
+    workspace-scripts/
     worktrees/
       <default-branch-name>/
-    reviews/
-    reports/
+    workspace-reviews/
+    workspace-reports/
 ```
 
 ## Meta Repository
@@ -53,14 +53,14 @@ Each folder under `projects/` represents one managed project:
 - `AGENTS.md` contains instructions specific to the managed project;
   `CLAUDE.md` imports those instructions for Claude Code.
 - `README.md` provides an overview of the managed project workspace.
-- `docs/` contains project documentation. Architecture decision records live
-  under `docs/adrs/`; other documentation subfolders are created when needed.
-- `plans/` contains plans for features and bug fixes, including related tasks.
-  Completed plan folders are stored under `plans/done/`.
-- `scripts/` contains helper automation for the managed project workspace.
+- `workspace-docs/` contains project documentation. Architecture decision records live
+  under `workspace-docs/adrs/`; other documentation subfolders are created when needed.
+- `workspace-plans/` contains plans for features and bug fixes, including related tasks.
+  Completed plan folders are stored under `workspace-plans/done/`.
+- `workspace-scripts/` contains helper automation for the managed project workspace.
   Scripts that are part of the project's source code remain in its repository
   checkout.
 - `worktrees/` contains Git checkouts and worktrees. The initial repository
   checkout is stored under `worktrees/<default-branch-name>/`.
-- `reviews/` contains evidence-backed review results.
-- `reports/` contains optional project reports requested by the user or a plan.
+- `workspace-reviews/` contains evidence-backed review results.
+- `workspace-reports/` contains optional project reports requested by the user or a plan.

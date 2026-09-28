@@ -63,7 +63,7 @@ def location(root: Path, cwd_value: Any) -> dict[str, str | None]:
         return result
     result["project"] = parts[1]
     if len(parts) >= 4 and parts[2] == "worktrees":
-        plan_directory = root / "projects" / parts[1] / "plans" / parts[3]
+        plan_directory = root / "projects" / parts[1] / "workspace-plans" / parts[3]
         if (plan_directory / "PLAN.md").is_file():
             result["plan"] = parts[3]
             if len(parts) >= 5 and parts[4] != "plan-integration":

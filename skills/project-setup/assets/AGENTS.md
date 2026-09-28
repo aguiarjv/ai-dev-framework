@@ -6,13 +6,16 @@ as the orchestrator.
 
 ## Project Paths
 
+All paths below are relative to this managed project folder. Workspace folders
+store coordination files outside the repository checkouts in `worktrees/`.
+
 - Repository checkout: `worktrees/<default-branch-name>/`
-- Project documentation: `docs/`
-- Architecture decisions: `docs/adrs/`
-- Active and completed plans: `plans/`
-- Project workspace scripts: `scripts/`
-- Review artifacts: `reviews/`
-- Optional reports: `reports/`
+- Project documentation: `workspace-docs/`
+- Architecture decisions: `workspace-docs/adrs/`
+- Active and completed plans: `workspace-plans/`
+- Project workspace scripts: `workspace-scripts/`
+- Review artifacts: `workspace-reviews/`
+- Optional reports: `workspace-reports/`
 
 ## Working Rules
 

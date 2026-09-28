@@ -26,7 +26,17 @@ Preview the full operation without writing files:
 
 The installer is idempotent when generated files are unchanged. It preflights
 the whole target and refuses to write anything when an existing destination
-differs. Version 1 intentionally has no force or update mode.
+differs. The base installer has no force or update mode.
+
+To preview migration of a previously installed workspace, run:
+
+```bash
+python3 installer/migrate.py --target /path/to/ai-workspace
+```
+
+After resolving any reported conflicts, add `--apply`. The migration updates
+installed framework files, renames managed-project metadata folders, and
+reports project-authored references that may need review.
 
 ## Goals
 
@@ -61,15 +71,15 @@ projects/
     AGENTS.md
     CLAUDE.md
     README.md
-    docs/
+    workspace-docs/
       adrs/
-    plans/
+    workspace-plans/
       done/
-    scripts/
+    workspace-scripts/
     worktrees/
       <default-branch-name>/
-    reviews/
-    reports/
+    workspace-reviews/
+    workspace-reports/
 ```
 
 The initial checkout for a managed project lives under

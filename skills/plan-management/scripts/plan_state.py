@@ -21,8 +21,8 @@ class TransitionError(ValueError):
 
 
 def project_root(plan_dir: Path) -> Path:
-    if plan_dir.parent.name != "plans":
-        raise TransitionError("Transition requires an active plans/<plan-id> directory")
+    if plan_dir.parent.name != "workspace-plans":
+        raise TransitionError("Transition requires an active workspace-plans/<plan-id> directory")
     return plan_dir.parent.parent
 
 
@@ -154,8 +154,8 @@ def transition_ready_for_integration(
         task_progress: required_file(task_progress),
         plan_progress: required_file(plan_progress),
     }
-    artifact(project, review, ("reviews", plan_dir.name))
-    artifact(project, handoff, ("plans", plan_dir.name, "tasks", task_id, "handoffs"))
+    artifact(project, review, ("workspace-reviews", plan_dir.name))
+    artifact(project, handoff, ("workspace-plans", plan_dir.name, "tasks", task_id, "handoffs"))
     status = frontmatter_value(originals[task_progress], "status")
     if status == "ready-for-integration":
         if (frontmatter_value(originals[task_progress], "latest_review") == review and
@@ -198,7 +198,7 @@ def transition_ready_for_integration(
 
     with tempfile.TemporaryDirectory(prefix="plan-state-") as temporary:
         staged_project = Path(temporary) / "project"
-        staged_plan = staged_project / "plans" / plan_dir.name
+        staged_plan = staged_project / "workspace-plans" / plan_dir.name
         staged_plan.parent.mkdir(parents=True)
         shutil.copytree(plan_dir, staged_plan, symlinks=True)
         staged_review = staged_project / review

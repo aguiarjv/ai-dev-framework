@@ -1,6 +1,6 @@
 # Plan and Task Management
 
-Use the `plans/` directory in a managed project to define work, track its
+Use the `workspace-plans/` directory in a managed project to define work, track its
 progress, and preserve enough context for another agent to continue it.
 
 ## Clarify Before Creating
@@ -22,7 +22,7 @@ Questions` is only for accepted, non-blocking uncertainty.
 ## Structure
 
 ```text
-plans/
+workspace-plans/
   done/
     <completed-plan-name>/
       PLAN.md
@@ -198,7 +198,7 @@ Apply these lifecycle rules:
 - Completed tasks and plans are terminal. Reopen one only when the user
   explicitly requests it. Record the reason, set the reopened item to
   `in-progress`, refresh its progress state, and, for a plan, move it from
-  `plans/done/` back to `plans/` before continuing.
+  `workspace-plans/done/` back to `workspace-plans/` before continuing.
 - When reopening a task makes a completed transitive dependent's dependency
   incomplete, reset that dependent to `not-started`, record why its prior
   completion must be reassessed, clear its `integrated_commit`, and repeat
@@ -234,7 +234,7 @@ must identify:
 - Probable new files and folders needed by the work.
 - Whether each path is expected to be inspected, modified, or created.
 - Evidence for the findings and any unresolved uncertainty.
-- Existing documentation under the managed project's `docs/` folder that
+- Existing documentation under the managed project's `workspace-docs/` folder that
   constrains, explains, or otherwise materially informs the work.
 - Installed workspace guides under `.agents/guides/` that apply to the work.
 - Probable project documentation that the work must create or update.
@@ -247,7 +247,7 @@ The orchestrator gives each explorer a clear investigation area and
 consolidates their findings. If findings conflict or required paths remain
 uncertain, continue exploring or ask the user rather than guessing.
 
-Every explorer checks the managed project's `docs/` folder for documentation
+Every explorer checks the managed project's `workspace-docs/` folder for documentation
 relevant to its investigation area. It also checks `.agents/guides/` for
 applicable shared guidance. Inspect candidate files before declaring them
 relevant; do not rely on filenames alone. An empty folder or the absence of a
@@ -296,7 +296,7 @@ table with these columns:
 - `Relevance`: How the document or guide informs the plan or task.
 - `Evidence`: The explorer finding that established its relevance.
 
-For `project-docs`, use a path beginning with `docs/`, relative to the managed
+For `project-docs`, use a path beginning with `workspace-docs/`, relative to the managed
 project folder. These entries may be existing or planned and may be inspected,
 modified, or created. A planned entry in the plan table must include `create`;
 a downstream task may use only `inspect` or `modify` after another task creates
@@ -315,7 +315,7 @@ how to proceed instead of silently skipping exploration.
 
 ## Creating a Plan
 
-If `plans/<plan-id>/` already exists, ask whether to resume it or choose a new
+If `workspace-plans/<plan-id>/` already exists, ask whether to resume it or choose a new
 identifier; never overwrite it. After approval, initialize the plan and every
 task as `not-started`, leave `current_tasks` empty, list immediately actionable
 tasks under `Next Actions`, and validate before implementation. Persist
@@ -331,7 +331,7 @@ accepted explorer handoffs under the plan-level `handoffs/` directory.
    record their branches, integration order, delivery branch, combined
    validation, and final integration review. Present the complete plan and task
    breakdown to the user.
-4. After user approval, create `plans/<plan-name>/` with `PLAN.md`,
+4. After user approval, create `workspace-plans/<plan-name>/` with `PLAN.md`,
    `PROGRESS.md`, `handoffs/`, and `tasks/`.
 5. Create each numbered task folder with `TASK.md`, `PROGRESS.md`, and
    `handoffs/`.
@@ -414,7 +414,7 @@ checkpoints named in the approved task or when new evidence makes one necessary.
 
 The reviewer returns complete review and handoff payloads. Because the reviewer
 is sandboxed read-only, the orchestrator writes them under
-`reviews/<plan-id>/` and the task's `handoffs/` directory. A clean checkpoint
+`workspace-reviews/<plan-id>/` and the task's `handoffs/` directory. A clean checkpoint
 review leaves the task `in-progress`. A clean final review makes it
 `ready-for-integration`. Actionable findings set it to `needs-fix` and require
 a fresh implementer session followed by another review.
@@ -444,7 +444,7 @@ When implementation is ready:
 ## Architecture Decisions
 
 Record whether the plan requires an ADR and why. Add every planned ADR under
-`docs/adrs/` to the plan documentation table and assign its creation or update
+`workspace-docs/adrs/` to the plan documentation table and assign its creation or update
 to a task. An implementation agent must return a newly discovered architectural
 choice to the orchestrator and user instead of deciding it silently.
 
@@ -458,7 +458,7 @@ and no unresolved blocker prevents completion.
 After every task completes, run the agreed combined validation in the plan
 integration worktree. Then review the exact branch and head against the plan's
 scope and completion criteria. Store the review as
-`reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, store its reviewer
+`workspace-reviews/<plan-id>/<plan-id>-integration-review-<NNN>.md`, store its reviewer
 handoff in the plan-level `handoffs/` folder, and record both artifacts in plan
 progress.
 
@@ -476,7 +476,7 @@ integration review whose worktree, branch, and head match the current plan
 progress.
 
 Record the final outcome in the plan-level `PROGRESS.md`, then move the entire
-plan folder to `plans/done/<plan-name>/`. Keep the plan and task files together
+plan folder to `workspace-plans/done/<plan-name>/`. Keep the plan and task files together
 so their definitions, decisions, validation, and progress history remain
 available.
 If the destination already exists, stop and ask rather than merging or

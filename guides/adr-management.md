@@ -15,7 +15,7 @@ Store ADRs in the managed project's documentation area:
 ```text
 projects/
   <project-name>/
-    docs/
+    workspace-docs/
       adrs/
         0001-<decision-title>.md
 ```

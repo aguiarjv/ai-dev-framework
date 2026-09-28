@@ -22,10 +22,10 @@ class PlanFixture:
 
     def __init__(self, root: Path) -> None:
         self.project_root = root
-        self.plan_dir = root / "plans" / "demo-plan"
+        self.plan_dir = root / "workspace-plans" / "demo-plan"
         self.plan_dir.mkdir(parents=True)
         (self.plan_dir / "handoffs").mkdir()
-        (root / "reviews" / "demo-plan").mkdir(parents=True)
+        (root / "workspace-reviews" / "demo-plan").mkdir(parents=True)
 
     def write(
         self,
@@ -74,7 +74,7 @@ class PlanFixture:
 
         checked = "x" if plan_criteria_checked else " "
         plan_documentation_rows = (
-            "| `docs/architecture.md` | `project-docs` | `existing` | `inspect` "
+            "| `workspace-docs/architecture.md` | `project-docs` | `existing` | `inspect` "
             "| Defines architecture. | Explorer read its design section. |\n"
             "| `.agents/guides/plan-and-task-management.md` | `workspace-guide` "
             "| `existing` | `inspect` | Defines planning rules. "
@@ -214,7 +214,7 @@ Implement before testing.
         integration_head = f'"{"c" * 40}"' if integration_created else "null"
         integration_uncommitted = "false" if integration_created else "null"
         latest_plan_review = (
-            '"reviews/demo-plan/demo-plan-integration-review-001.md"'
+            '"workspace-reviews/demo-plan/demo-plan-integration-review-001.md"'
             if include_integration_review
             else "null"
         )
@@ -283,7 +283,7 @@ Current plan state.
             documentation_rows = ""
             if include_documentation:
                 documentation_rows = (
-                    "| `docs/architecture.md` | `project-docs` | `existing` "
+                    "| `workspace-docs/architecture.md` | `project-docs` | `existing` "
                     "| `inspect` | Defines architecture. | Explorer read it. |"
                 )
                 if task_id == "001-build":
@@ -367,37 +367,37 @@ Complete {task_id}.
             review_result = "Not run."
             if status == "ready-for-review":
                 latest_handoff = (
-                    f'"plans/demo-plan/tasks/{task_id}/handoffs/'
+                    f'"workspace-plans/demo-plan/tasks/{task_id}/handoffs/'
                     '001-implementer-to-reviewer.md"'
                 )
                 review_result = "Awaiting final review."
             elif status == "needs-fix":
                 latest_handoff = (
-                    f'"plans/demo-plan/tasks/{task_id}/handoffs/'
+                    f'"workspace-plans/demo-plan/tasks/{task_id}/handoffs/'
                     '002-reviewer-to-implementer.md"'
                 )
                 latest_review = (
-                    f'"reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
+                    f'"workspace-reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
                 )
                 review_result = "Actionable findings."
                 self._write_review(task_id, "actionable-findings")
             elif status == "ready-for-integration":
                 latest_handoff = (
-                    f'"plans/demo-plan/tasks/{task_id}/handoffs/'
+                    f'"workspace-plans/demo-plan/tasks/{task_id}/handoffs/'
                     '002-reviewer-to-orchestrator.md"'
                 )
                 latest_review = (
-                    f'"reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
+                    f'"workspace-reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
                 )
                 review_result = "Clean; awaiting integration."
                 self._write_review(task_id, "clean")
             elif status == "completed":
                 latest_handoff = (
-                    f'"plans/demo-plan/tasks/{task_id}/handoffs/'
+                    f'"workspace-plans/demo-plan/tasks/{task_id}/handoffs/'
                     '002-reviewer-to-orchestrator.md"'
                 )
                 latest_review = (
-                    f'"reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
+                    f'"workspace-reviews/demo-plan/demo-plan-{task_id}-review-001.md"'
                 )
                 review_result = "Clean."
                 self._write_review(task_id, "clean")
@@ -480,7 +480,7 @@ Current task state.
     def _write_review(self, task_id: str, status: str) -> None:
         self._write(
             self.project_root
-            / "reviews"
+            / "workspace-reviews"
             / "demo-plan"
             / f"demo-plan-{task_id}-review-001.md",
             f"""---
@@ -501,7 +501,7 @@ uncommitted_changes: false
     def _write_plan_review(self, status: str) -> None:
         self._write(
             self.project_root
-            / "reviews"
+            / "workspace-reviews"
             / "demo-plan"
             / "demo-plan-integration-review-001.md",
             f"""---
@@ -642,7 +642,7 @@ class PlanValidatorTests(unittest.TestCase):
             )
             review_path = (
                 fixture.project_root
-                / "reviews"
+                / "workspace-reviews"
                 / "demo-plan"
                 / "demo-plan-001-build-review-001.md"
             )
@@ -677,7 +677,7 @@ class PlanValidatorTests(unittest.TestCase):
             progress_path = fixture.plan_dir / "tasks" / "001-build" / "PROGRESS.md"
             content = progress_path.read_text(encoding="utf-8")
             content = content.replace(
-                'latest_handoff: "plans/demo-plan/tasks/001-build/handoffs/'
+                'latest_handoff: "workspace-plans/demo-plan/tasks/001-build/handoffs/'
                 '001-implementer-to-reviewer.md"',
                 "latest_handoff: null",
             )
@@ -699,7 +699,7 @@ class PlanValidatorTests(unittest.TestCase):
             progress_path = fixture.plan_dir / "tasks" / "001-build" / "PROGRESS.md"
             content = progress_path.read_text(encoding="utf-8")
             content = content.replace(
-                'latest_review: "reviews/demo-plan/demo-plan-001-build-review-001.md"',
+                'latest_review: "workspace-reviews/demo-plan/demo-plan-001-build-review-001.md"',
                 "latest_review: null",
             )
             progress_path.write_text(content, encoding="utf-8")
@@ -723,8 +723,8 @@ class PlanValidatorTests(unittest.TestCase):
             content = progress_path.read_text(encoding="utf-8")
             progress_path.write_text(
                 content.replace(
-                    "reviews/demo-plan/demo-plan-001-build-review-001.md",
-                    "reviews/demo-plan-001-build-review-001.md",
+                    "workspace-reviews/demo-plan/demo-plan-001-build-review-001.md",
+                    "workspace-reviews/demo-plan-001-build-review-001.md",
                 ),
                 encoding="utf-8",
             )
@@ -733,7 +733,7 @@ class PlanValidatorTests(unittest.TestCase):
         self.assertTrue(
             any(
                 "latest_review must be a normalized Markdown path below "
-                "reviews/demo-plan/" in error
+                "workspace-reviews/demo-plan/" in error
                 for error in errors
             )
         )
@@ -768,7 +768,7 @@ class PlanValidatorTests(unittest.TestCase):
             )
             review_path = (
                 fixture.project_root
-                / "reviews"
+                / "workspace-reviews"
                 / "demo-plan"
                 / "demo-plan-integration-review-001.md"
             )
@@ -795,8 +795,8 @@ class PlanValidatorTests(unittest.TestCase):
             content = progress_path.read_text(encoding="utf-8")
             progress_path.write_text(
                 content.replace(
-                    "reviews/demo-plan/demo-plan-integration-review-001.md",
-                    "reviews/demo-plan-integration-review-001.md",
+                    "workspace-reviews/demo-plan/demo-plan-integration-review-001.md",
+                    "workspace-reviews/demo-plan-integration-review-001.md",
                 ),
                 encoding="utf-8",
             )
@@ -805,7 +805,7 @@ class PlanValidatorTests(unittest.TestCase):
         self.assertTrue(
             any(
                 "latest_review must be a normalized Markdown path below "
-                "reviews/demo-plan/" in error
+                "workspace-reviews/demo-plan/" in error
                 for error in errors
             )
         )
@@ -820,7 +820,7 @@ class PlanValidatorTests(unittest.TestCase):
             )
             review_path = (
                 fixture.project_root
-                / "reviews"
+                / "workspace-reviews"
                 / "demo-plan"
                 / "demo-plan-001-build-review-001.md"
             )
@@ -844,7 +844,7 @@ class PlanValidatorTests(unittest.TestCase):
             )
             review_path = (
                 fixture.project_root
-                / "reviews"
+                / "workspace-reviews"
                 / "demo-plan"
                 / "demo-plan-001-build-review-001.md"
             )
@@ -1043,7 +1043,7 @@ class PlanValidatorTests(unittest.TestCase):
             plan_path.write_text(content, encoding="utf-8")
             errors = fixture.errors()
 
-        self.assertTrue(any("below docs/adrs/" in error for error in errors))
+        self.assertTrue(any("below workspace-docs/adrs/" in error for error in errors))
 
     def test_reopened_prerequisite_invalidates_completed_dependents(self) -> None:
         errors = self.run_fixture(
@@ -1103,12 +1103,12 @@ class PlanValidatorTests(unittest.TestCase):
             plan_path = fixture.plan_dir / "PLAN.md"
             content = plan_path.read_text(encoding="utf-8")
             plan_path.write_text(
-                content.replace("`docs/architecture.md`", "`README.md`"),
+                content.replace("`workspace-docs/architecture.md`", "`README.md`"),
                 encoding="utf-8",
             )
             errors = fixture.errors()
 
-        self.assertTrue(any("project-docs path must be below docs/" in error for error in errors))
+        self.assertTrue(any("project-docs path must be below workspace-docs/" in error for error in errors))
 
     def test_workspace_guides_are_existing_and_inspect_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1157,11 +1157,11 @@ class PlanValidatorTests(unittest.TestCase):
             plan_path = fixture.plan_dir / "PLAN.md"
             plan_content = plan_path.read_text(encoding="utf-8")
             plan_content = plan_content.replace(
-                "| `docs/architecture.md` | `project-docs` | `existing` | `inspect` "
+                "| `workspace-docs/architecture.md` | `project-docs` | `existing` | `inspect` "
                 "| Defines architecture. | Explorer read its design section. |",
-                "| `docs/architecture.md` | `project-docs` | `existing` | `inspect` "
+                "| `workspace-docs/architecture.md` | `project-docs` | `existing` | `inspect` "
                 "| Defines architecture. | Explorer read its design section. |\n"
-                "| `docs/testing.md` | `project-docs` | `planned` "
+                "| `workspace-docs/testing.md` | `project-docs` | `planned` "
                 "| `create`, `modify` | Defines testing. | Explorer found the gap. |",
             )
             plan_path.write_text(plan_content, encoding="utf-8")
@@ -1169,9 +1169,9 @@ class PlanValidatorTests(unittest.TestCase):
             task_path = fixture.plan_dir / "tasks" / "002-test" / "TASK.md"
             task_content = task_path.read_text(encoding="utf-8")
             task_content = task_content.replace(
-                "| `docs/architecture.md` | `project-docs` | `existing` | `inspect` "
+                "| `workspace-docs/architecture.md` | `project-docs` | `existing` | `inspect` "
                 "| Defines architecture. | Explorer read it. |",
-                "| `docs/testing.md` | `project-docs` | `planned` | `modify` "
+                "| `workspace-docs/testing.md` | `project-docs` | `planned` | `modify` "
                 "| Defines testing. | Explorer found the gap. |",
             )
             task_path.write_text(task_content, encoding="utf-8")
@@ -1187,14 +1187,14 @@ class PlanValidatorTests(unittest.TestCase):
             task_path = fixture.plan_dir / "tasks" / "002-test" / "TASK.md"
             content = task_path.read_text(encoding="utf-8")
             task_path.write_text(
-                content.replace("`docs/architecture.md`", "`docs/testing.md`"),
+                content.replace("`workspace-docs/architecture.md`", "`workspace-docs/testing.md`"),
                 encoding="utf-8",
             )
             errors = fixture.errors()
 
         self.assertTrue(
             any(
-                "'project-docs' 'docs/testing.md' is missing from the plan table"
+                "'project-docs' 'workspace-docs/testing.md' is missing from the plan table"
                 in error
                 for error in errors
             )

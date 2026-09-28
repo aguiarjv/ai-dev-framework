@@ -6,25 +6,25 @@ description: Create or update Markdown documentation under a managed project's d
 # Documentation Management
 
 Use this skill from the orchestrator when the user wants to create or update
-durable project documentation under `projects/<project-name>/docs/`.
+durable project documentation under `projects/<project-name>/workspace-docs/`.
 
 ## Resolve the Destination
 
 - Confirm the managed project and the documentation goal. Ask the user when
   either is ambiguous and cannot be resolved from the workspace.
-- Write Markdown files only inside the managed project's `docs/` folder, never
+- Write Markdown files only inside the managed project's `workspace-docs/` folder, never
   the repository checkout's own documentation folder.
-- Inspect the existing `docs/` structure before selecting a path. Reuse an
+- Inspect the existing `workspace-docs/` structure before selecting a path. Reuse an
   existing domain folder when it already covers the subject.
 - For a specific subject, choose a short kebab-case domain folder and a
-  descriptive kebab-case filename: `docs/<domain>/<document-name>.md`. Classify
+  descriptive kebab-case filename: `workspace-docs/<domain>/<document-name>.md`. Classify
   by subject domain, not by document type.
-- Keep genuinely cross-domain documentation directly under `docs/`.
-- Do not create `README.md` files in `docs/`. Do not place ordinary
-  documentation in the reserved `docs/adrs/` folder.
+- Keep genuinely cross-domain documentation directly under `workspace-docs/`.
+- Do not create `README.md` files in `workspace-docs/`. Do not place ordinary
+  documentation in the reserved `workspace-docs/adrs/` folder.
 
 For example, a guide explaining how to run the project locally belongs at a
-path such as `docs/dev-local/running-locally.md`, not `docs/guides/`.
+path such as `workspace-docs/dev-local/running-locally.md`, not `workspace-docs/guides/`.
 
 If multiple domain names are equally reasonable and the choice would affect
 navigation or an existing taxonomy, ask the user instead of creating competing
@@ -86,7 +86,7 @@ plan-driven development lifecycle.
 Before finishing:
 
 1. Confirm every created or modified file is below the selected managed
-   project's `docs/` folder.
+   project's `workspace-docs/` folder.
 2. Re-read the document for internal consistency and verify referenced local
    paths against the selected project baseline.
 3. Run applicable documentation checks when the workspace provides them.

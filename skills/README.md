@@ -28,7 +28,7 @@ source remains portable. The installer renders discovery copies under both
 - [Review Management](review-management/SKILL.md) coordinates read-only task
   and plan integration reviews and applies their results to workflow state.
 - [ADR Management](adr-management/SKILL.md) creates and supersedes architecture
-  decision records under `docs/adrs/`.
+  decision records under `workspace-docs/adrs/`.
 - [Database Exploration](database-exploration/SKILL.md) performs bounded live
   database investigation through verified read-only access.
 - [Commit Management](commit-management/SKILL.md) applies the workspace's

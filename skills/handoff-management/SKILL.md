@@ -14,8 +14,8 @@ start new handoffs from `assets/HANDOFF.md`.
    being recorded.
 2. Choose the applicable directory:
    - Plan-level exploration, coordination, or integration review:
-     `plans/<plan-id>/handoffs/`.
-   - Task-level: `plans/<plan-id>/tasks/<task-id>/handoffs/`.
+     `workspace-plans/<plan-id>/handoffs/`.
+   - Task-level: `workspace-plans/<plan-id>/tasks/<task-id>/handoffs/`.
 3. Assign the next unused three-digit sequence in that directory and use
    `<sequence>-<from-role>-to-<to-role>.md` as the filename.
 4. Fill every template field with the exact baseline and concise durable state.

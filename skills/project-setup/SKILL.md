@@ -34,15 +34,15 @@ Create this structure for each managed project:
     AGENTS.md
     CLAUDE.md
     README.md
-    docs/
+    workspace-docs/
       adrs/
-    plans/
+    workspace-plans/
       done/
-    scripts/
+    workspace-scripts/
     worktrees/
       <default-branch-name>/
-    reviews/
-    reports/
+    workspace-reviews/
+    workspace-reports/
 ```
 
 ## Folder Roles
@@ -51,16 +51,16 @@ Create this structure for each managed project:
   coding agents.
 - `CLAUDE.md` imports the shared instructions for Claude Code.
 - `README.md` explains the managed project workspace.
-- `docs/` contains project documentation created as needed. Architecture
-  decision records live under `docs/adrs/`.
-- `plans/` contains plans for new features, bug fixes, and related task lists.
-  Completed plan folders are stored under `plans/done/`.
-- `scripts/` contains helper automation for the managed project workspace.
+- `workspace-docs/` contains project documentation created as needed. Architecture
+  decision records live under `workspace-docs/adrs/`.
+- `workspace-plans/` contains plans for new features, bug fixes, and related task lists.
+  Completed plan folders are stored under `workspace-plans/done/`.
+- `workspace-scripts/` contains helper automation for the managed project workspace.
   Scripts that are part of the project's source code remain in its repository
   checkout.
 - `worktrees/` contains Git checkouts or worktrees for the project.
-- `reviews/` contains review results.
-- `reports/` contains generated reports.
+- `workspace-reviews/` contains review results.
+- `workspace-reports/` contains generated reports.
 
 ## Workflow
 
@@ -71,7 +71,7 @@ Create this structure for each managed project:
 2. Resolve the project folder as `projects/<project-name>/`.
 3. Stop and ask the user before overwriting or reusing an existing project
    folder.
-4. Create the project metadata folders, including `docs/adrs/` and `scripts/`.
+4. Create the project metadata folders, including `workspace-docs/adrs/` and `workspace-scripts/`.
 5. If cloning, clone the GitHub repository into
    `projects/<project-name>/worktrees/<default-branch-name>/`.
 6. If creating a new Git project, create the repository in

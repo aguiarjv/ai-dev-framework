@@ -57,7 +57,7 @@ approved_at: "<YYYY-MM-DDTHH:MM:SSZ>"
 
 | Path | Source | State | Expected Use | Relevance | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `docs/<documentation-path>` | `project-docs` | `existing` or `planned` | `inspect`, `modify`, or `create` | <How this document informs the plan> | <Explorer evidence supporting this entry> |
+| `workspace-docs/<documentation-path>` | `project-docs` | `existing` or `planned` | `inspect`, `modify`, or `create` | <How this document informs the plan> | <Explorer evidence supporting this entry> |
 | `.agents/guides/<guide-path>` | `workspace-guide` | `existing` | `inspect` | <How this guide informs the plan> | <Explorer evidence supporting this entry> |
 
 ## Open Questions
@@ -68,7 +68,7 @@ approved_at: "<YYYY-MM-DDTHH:MM:SSZ>"
 
 | Decision | ADR Required | Path | Rationale |
 | --- | --- | --- | --- |
-| <Decision or `No ADR required`> | <yes|no> | <`docs/adrs/NNNN-title.md` or `None`> | <Why an ADR is or is not required> |
+| <Decision or `No ADR required`> | <yes|no> | <`workspace-docs/adrs/NNNN-title.md` or `None`> | <Why an ADR is or is not required> |
 
 ## Tasks
 

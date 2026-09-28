@@ -30,7 +30,7 @@ review_required: true
 
 | Path | Source | State | Expected Use | Relevance | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| `docs/<documentation-path>` | `project-docs` | `existing` or `planned` | `inspect`, `modify`, or `create` | <How this document informs this task> | <Explorer evidence supporting this entry> |
+| `workspace-docs/<documentation-path>` | `project-docs` | `existing` or `planned` | `inspect`, `modify`, or `create` | <How this document informs this task> | <Explorer evidence supporting this entry> |
 | `.agents/guides/<guide-path>` | `workspace-guide` | `existing` | `inspect` | <How this guide informs this task> | <Explorer evidence supporting this entry> |
 
 ## Acceptance Criteria

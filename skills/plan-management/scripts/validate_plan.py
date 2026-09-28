@@ -114,9 +114,9 @@ class PlanValidator:
 
     def managed_project_root(self) -> Path | None:
         parent = self.plan_dir.parent
-        if parent.name == "plans":
+        if parent.name == "workspace-plans":
             return parent.parent
-        if parent.name == "done" and parent.parent.name == "plans":
+        if parent.name == "done" and parent.parent.name == "workspace-plans":
             return parent.parent.parent
         return None
 
@@ -504,7 +504,7 @@ class PlanValidator:
         if (
             "\\" in value
             or len(parts) < 2
-            or parts[0] != "reviews"
+            or parts[0] != "workspace-reviews"
             or any(part in {"", ".", ".."} for part in parts)
             or PurePosixPath(value).is_absolute()
             or not value.endswith(".md")
@@ -670,8 +670,8 @@ class PlanValidator:
         self.validate_timestamp(document)
         self.validate_worktree(document, allow_null=True, key="integration_worktree")
         self.validate_commit(document, "integration_head_commit")
-        self.validate_artifact_path(document, "latest_handoff", "plans")
-        self.validate_artifact_path(document, "latest_review", "reviews", plan_id)
+        self.validate_artifact_path(document, "latest_handoff", "workspace-plans")
+        self.validate_artifact_path(document, "latest_review", "workspace-reviews", plan_id)
         if document.frontmatter.get("plan") != plan_id:
             self.error(document.path, f"plan must match plan folder name {plan_id!r}")
         if not isinstance(document.frontmatter.get("current_tasks"), list):
@@ -764,8 +764,8 @@ class PlanValidator:
         self.validate_worktree(document, allow_null=True)
         self.validate_commit(document, "head_commit")
         self.validate_commit(document, "integrated_commit")
-        self.validate_artifact_path(document, "latest_handoff", "plans")
-        self.validate_artifact_path(document, "latest_review", "reviews", plan_id)
+        self.validate_artifact_path(document, "latest_handoff", "workspace-plans")
+        self.validate_artifact_path(document, "latest_review", "workspace-reviews", plan_id)
         if document.frontmatter.get("task") != task_id:
             self.error(document.path, f"task must match task folder name {task_id!r}")
 
@@ -909,10 +909,10 @@ class PlanValidator:
                 )
 
             if source == "project-docs":
-                if normalized and (len(raw_parts) < 2 or raw_parts[0] != "docs"):
+                if normalized and (len(raw_parts) < 2 or raw_parts[0] != "workspace-docs"):
                     self.error(
                         document.path,
-                        f"project-docs path must be below docs/: {path!r}",
+                        f"project-docs path must be below workspace-docs/: {path!r}",
                     )
                 if (
                     document.path.name == "PLAN.md"
@@ -996,7 +996,7 @@ class PlanValidator:
                 normalized = (
                     "\\" not in path
                     and len(parts) >= 3
-                    and parts[:2] == ["docs", "adrs"]
+                    and parts[:2] == ["workspace-docs", "adrs"]
                     and all(part not in {"", ".", ".."} for part in parts)
                     and not PurePosixPath(path).is_absolute()
                     and path.endswith(".md")
@@ -1004,7 +1004,7 @@ class PlanValidator:
                 if not normalized:
                     self.error(
                         plan.path,
-                        "an ADR-required decision needs a Markdown path below docs/adrs/",
+                        "an ADR-required decision needs a Markdown path below workspace-docs/adrs/",
                     )
             elif required == "no" and path.lower() not in NONE_VALUES:
                 self.error(plan.path, "a no-ADR decision must use None for Path")

@@ -18,7 +18,7 @@ below is a routing index, not a request to load every guide at session start.
 - Follow `.agents/guides/worktree-management.md` when managing isolated task worktrees.
 - Follow `.agents/guides/review-management.md` for project reviews.
 - Follow `.agents/guides/report-management.md` when creating project reports.
-- Follow `.agents/guides/adr-management.md` for decisions under `docs/adrs/`.
+- Follow `.agents/guides/adr-management.md` for decisions under `workspace-docs/adrs/`.
 - Follow `.agents/guides/database-exploration.md` for live database inspection.
 - Follow `.agents/guides/commit-management.md` for every authored Git commit
   message.
@@ -26,7 +26,7 @@ below is a routing index, not a request to load every guide at session start.
   outside the new-plan workflow.
 - Use the `project-setup` skill when adding a managed project.
 - Use the `documentation-management` skill when creating or updating Markdown
-  files under a managed project's `docs/` folder.
+  files under a managed project's `workspace-docs/` folder.
 - Use the `plan-management` skill when creating, resuming, updating,
   validating, reopening, or completing a plan or task.
 - Use the `worktree-management` skill to create the plan integration worktree,
@@ -80,7 +80,7 @@ files. If live database evidence is required, give `database-explorer` a
 bounded question and verified read-only access.
 
 Every explorer also inspects relevant candidates in the managed project's
-`docs/` folder and the workspace's `.agents/guides/` folder. Plans contain the
+`workspace-docs/` folder and the workspace's `.agents/guides/` folder. Plans contain the
 complete set of verified references; tasks contain the applicable subset.
 
 Every subagent returns a structured handoff. Implementers write their own
@@ -115,14 +115,17 @@ handoff is in flight.
 
 ## Working Rules
 
+- Resolve `workspace-docs/`, `workspace-plans/`, `workspace-scripts/`,
+  `workspace-reviews/`, and `workspace-reports/` relative to the managed
+  project's `projects/<project-name>/` folder, never relative to a worktree.
 - Work in the applicable checkout under
   `projects/<project-name>/worktrees/<default-branch-name>/` for the initial
   checkout or `projects/<project-name>/worktrees/<plan-id>/<worktree-name>/`
   for plan integration and task worktrees.
 - Read the managed project's workspace instructions and any instructions inside
   its Git checkout before assigning or changing project work.
-- Store project coordination artifacts in that project's `docs/`, `plans/`,
-  `reviews/`, and `reports/` folders, not inside another managed project.
+- Store project coordination artifacts in that project's `workspace-docs/`, `workspace-plans/`,
+  `workspace-reviews/`, and `workspace-reports/` folders, not inside another managed project.
 - Track durable state in plan, task, handoff, review, ADR, and report files so a
   new agent can continue without prior chat history.
 - Treat the orchestrator as the sole writer of plan-level `PROGRESS.md` files.

@@ -1,6 +1,6 @@
 # Report Management
 
-Use the `reports/` directory in a managed project for durable project reports,
+Use the `workspace-reports/` directory in a managed project for durable project reports,
 including investigation summaries, research results, status snapshots,
 operational analyses, inventories, and other evidence-based syntheses.
 
@@ -8,8 +8,8 @@ Reports are optional. Do not create a completion report for every plan unless
 the user requests it or the approved plan includes it as a deliverable.
 
 A report explains what was found, measured, or concluded for a stated purpose.
-Use `reviews/` instead when the primary purpose is to evaluate a target against
-criteria and produce actionable findings. Use `docs/` for durable project
+Use `workspace-reviews/` instead when the primary purpose is to evaluate a target against
+criteria and produce actionable findings. Use `workspace-docs/` for durable project
 documentation that should describe the project independently of a particular
 reporting event.
 
@@ -21,13 +21,13 @@ project:
 ```text
 projects/
   <project-name>/
-    reports/
+    workspace-reports/
       <report-name>.md
 ```
 
 Use a concise, descriptive, kebab-case filename that identifies the report's
 subject or purpose. Do not store a managed project's report in the repository
-checkout, another managed project, `docs/`, or `reviews/`.
+checkout, another managed project, `workspace-docs/`, or `workspace-reviews/`.
 
 Before writing, check whether the target path already exists. Do not overwrite
 or repurpose an existing report unless the user explicitly asks to update it.
@@ -104,7 +104,7 @@ into one fixed section structure.
 5. Separate observed facts, inferences, and recommendations while synthesizing
    the result.
 6. Write the report to
-   `projects/<project-name>/reports/<report-name>.md`.
+   `projects/<project-name>/workspace-reports/<report-name>.md`.
 7. Verify that material claims have evidence and that limitations, timestamps,
    and repository baselines are accurate.
 

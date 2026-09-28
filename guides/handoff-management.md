@@ -11,7 +11,7 @@ Store planning and exploration handoffs at plan level and execution handoffs
 with their task:
 
 ```text
-plans/
+workspace-plans/
   <plan-name>/
     handoffs/
       001-<from-role>-to-<to-role>.md

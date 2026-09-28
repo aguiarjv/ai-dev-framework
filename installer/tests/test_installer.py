@@ -178,7 +178,7 @@ class InstallerCliTests(unittest.TestCase):
             manifest_path = target / install.MANIFEST_PATH
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             self.assertEqual("ai-dev-framework", manifest["framework"])
-            self.assertEqual("0.1.0", manifest["framework_version"])
+            self.assertEqual("0.2.0", manifest["framework_version"])
             self.assertEqual(1, manifest["schema_version"])
             self.assertNotIn(install.MANIFEST_PATH.as_posix(), {
                 item["path"] for item in manifest["files"]
@@ -213,7 +213,7 @@ class InstallerCliTests(unittest.TestCase):
             self.assertEqual(0, installed.returncode, installed.stderr)
             nested = target / "projects/sample/worktrees/example/001-task"
             nested.mkdir(parents=True)
-            task = target / "projects/sample/plans/example/tasks/001-task"
+            task = target / "projects/sample/workspace-plans/example/tasks/001-task"
             task.mkdir(parents=True)
             (task.parent.parent / "PLAN.md").write_text("# Plan\n", encoding="utf-8")
             (task / "TASK.md").write_text("# Task\n", encoding="utf-8")

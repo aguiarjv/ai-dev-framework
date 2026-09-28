@@ -1,6 +1,6 @@
 ---
 name: adr-management
-description: Decide when an architecture decision record is required and create or supersede ADRs under a managed project's docs/adrs directory.
+description: Decide when an architecture decision record is required and create or supersede ADRs under a managed project's workspace-docs/adrs directory.
 ---
 
 # ADR Management
@@ -21,12 +21,12 @@ that depends on it and return the choice to the orchestrator and user.
 
 ## Create an ADR
 
-1. Search `docs/adrs/` and relevant documentation for an existing record of the
+1. Search `workspace-docs/adrs/` and relevant documentation for an existing record of the
    decision.
 2. Select the next unused four-digit sequence and a kebab-case filename.
 3. Fill every field and section in `assets/ADR.md` after the user accepts the
    decision.
-4. Write the record to `docs/adrs/<NNNN>-<decision-title>.md` relative to the
+4. Write the record to `workspace-docs/adrs/<NNNN>-<decision-title>.md` relative to the
    managed project folder.
 5. Link it from the plan and applicable task documentation tables.
 6. Validate that implementation and tests match the accepted decision before

@@ -26,14 +26,15 @@ projects/
     AGENTS.md
     CLAUDE.md
     README.md
-    docs/
+    workspace-docs/
       adrs/
-    plans/
+    workspace-plans/
       done/
+    workspace-scripts/
     worktrees/
       <default-branch-name>/
-    reviews/
-    reports/
+    workspace-reviews/
+    workspace-reports/
 ```
 
 ## Usage
@@ -50,6 +51,15 @@ contain unrelated files. All destinations are checked before writing; a
 differing file, symlink, invalid manifest, or non-directory path component
 aborts the install without overwriting anything.
 
+For an existing installation, preview the workspace naming migration with
+`python3 installer/migrate.py --target /path/to/ai-workspace`. Add `--apply`
+after reviewing its moves, file updates, and references marked `REVIEW`.
+The migration verifies installed files against the existing manifest, stops
+on folder collisions, and keeps the `worktrees/` checkouts untouched. `REVIEW`
+lines identify references the tool cannot safely classify; they may refer to
+files inside a checkout. Rerunning `--apply` after an interruption restores
+the previous state before retrying.
+
 The installer copies native agent definitions to `.codex/agents/` and
 `.claude/agents/`, guides to `.agents/guides/`, and generated copies of each
 portable skill to `.agents/skills/` and `.claude/skills/`. `CLAUDE.md` imports
@@ -58,8 +68,9 @@ source revision, dirty state, installation time, managed paths, and hashes.
 
 The initial Git checkout for each managed project lives at
 `projects/<project-name>/worktrees/<default-branch-name>/`. The installer does
-not create README files inside `docs/`, `plans/`, `worktrees/`, `reviews/`, or
-`reports/`.
+not create README files inside `workspace-docs/`, `workspace-plans/`,
+`workspace-scripts/`, `worktrees/`, `workspace-reviews/`, or
+`workspace-reports/`.
 
 Run Codex or Claude Code from the meta-repository root. The base installer does
 not initialize Git or create a managed project; use the installed

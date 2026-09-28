@@ -28,9 +28,9 @@ class PlanStateTests(unittest.TestCase):
             statuses={"001-build": "ready-for-review", "002-test": "not-started"},
             plan_status="in-progress",
         )
-        self.review = "reviews/demo-plan/demo-plan-001-build-review-001.md"
+        self.review = "workspace-reviews/demo-plan/demo-plan-001-build-review-001.md"
         self.handoff = (
-            "plans/demo-plan/tasks/001-build/handoffs/"
+            "workspace-plans/demo-plan/tasks/001-build/handoffs/"
             "002-reviewer-to-orchestrator.md"
         )
         self.fixture._write_review("001-build", "clean")

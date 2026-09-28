@@ -26,7 +26,7 @@ class NativeMetricsTests(unittest.TestCase):
             / "projects/tracker/worktrees/example-plan/001-example/apps/web"
         )
         self.worktree.mkdir(parents=True)
-        task = self.root / "projects/tracker/plans/example-plan/tasks/001-example"
+        task = self.root / "projects/tracker/workspace-plans/example-plan/tasks/001-example"
         task.mkdir(parents=True)
         (task.parent.parent / "PLAN.md").write_text("# Plan\n", encoding="utf-8")
         (task / "TASK.md").write_text("# Task\n", encoding="utf-8")

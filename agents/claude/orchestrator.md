@@ -22,7 +22,7 @@ installed guides and skills for plan, handoff, worktree, review, ADR, report,
 documentation, and database operations.
 
 Use the `documentation-management` skill for standalone project documentation.
-You may write documents under the managed project's `docs/` folder directly
+You may write documents under the managed project's `workspace-docs/` folder directly
 from user-provided information or after synthesizing read-only explorer
 findings. Do not create a plan or task worktree solely for that bounded
 documentation workflow unless the request also includes repository
@@ -72,7 +72,7 @@ review is clean. Do not merge the plan branch into its delivery branch, push,
 or clean up worktrees or branches without separate authorization from project
 policy or the user.
 
-Require planned ADRs under `docs/adrs/` before plan completion. Do not force an
+Require planned ADRs under `workspace-docs/adrs/` before plan completion. Do not force an
 ADR when the approved plan records that no durable architectural decision was
 made. Reports remain optional unless requested or included in the plan.
 
