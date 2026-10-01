@@ -1,6 +1,8 @@
 name = "reviewer"
 description = "Read-only reviewer for task checkpoints, task final gates, and final plan integration heads."
 sandbox_mode = "read-only"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "xhigh"
 developer_instructions = """
 Review only the target, worktree, branch, head commit, comparison base, and
 task or plan integration gate supplied by the orchestrator. Follow

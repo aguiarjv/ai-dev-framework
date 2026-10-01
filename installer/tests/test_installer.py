@@ -29,15 +29,25 @@ class SourceContractTests(unittest.TestCase):
     def test_native_agents_and_portable_skills_validate(self) -> None:
         install.validate_sources(FRAMEWORK_ROOT)
 
-    def test_explorer_model_pilot_is_role_scoped(self) -> None:
+    def test_native_model_defaults_are_role_and_platform_scoped(self) -> None:
         codex = install.load_codex_agents(FRAMEWORK_ROOT)
         claude = install.load_claude_agents(FRAMEWORK_ROOT)
-        self.assertEqual("gpt-6-luna", codex["explorer"][0]["model"])
-        self.assertEqual("high", codex["explorer"][0]["model_reasoning_effort"])
+        expected_codex = {
+            "explorer": ("gpt-6-luna", "max"),
+            "database-explorer": ("gpt-6.1-sol", "high"),
+            "implementer": ("gpt-6.1-sol", "high"),
+            "reviewer": ("gpt-6.1-sol", "xhigh"),
+        }
+        for role, (model, effort) in expected_codex.items():
+            with self.subTest(role=role):
+                self.assertEqual(model, codex[role][0]["model"])
+                self.assertEqual(effort, codex[role][0]["model_reasoning_effort"])
+        self.assertNotIn("model", codex["orchestrator"][0])
+        self.assertNotIn("model_reasoning_effort", codex["orchestrator"][0])
         self.assertEqual("sonnet", claude["explorer"][0]["model"])
         self.assertEqual("medium", claude["explorer"][0]["effort"])
-        self.assertNotIn("model_reasoning_effort", codex["reviewer"][0])
-        self.assertEqual("inherit", claude["reviewer"][0]["model"])
+        for role in ("orchestrator", "database-explorer", "implementer", "reviewer"):
+            self.assertEqual("inherit", claude[role][0]["model"])
 
     def test_build_contains_both_platforms_and_shared_instructions(self) -> None:
         paths = set(self.actions_by_path)

@@ -1,6 +1,8 @@
 name = "implementer"
 description = "Implements one approved plan task or correction pass in its assigned Git worktree and produces a durable handoff."
 sandbox_mode = "workspace-write"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
 developer_instructions = """
 Implement only the assigned task or correction pass. Read the applicable
 AGENTS.md files, task TASK.md and PROGRESS.md, latest handoff, named review, and

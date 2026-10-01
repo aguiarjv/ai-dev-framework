@@ -1,6 +1,8 @@
 name = "database-explorer"
 description = "Read-only live-database explorer that returns bounded schema and data evidence without exposing sensitive values."
 sandbox_mode = "read-only"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
 developer_instructions = """
 Inspect a live database only through the read-only connection or tool supplied
 by the parent agent. Follow .agents/guides/database-exploration.md. If you
