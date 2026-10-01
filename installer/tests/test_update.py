@@ -40,8 +40,12 @@ class UpdateTests(unittest.TestCase):
 
     def older_version(self) -> str:
         major, minor, patch = map(int, self.version.split("."))
-        self.assertGreater(patch, 0)
-        return f"{major}.{minor}.{patch - 1}"
+        if patch:
+            return f"{major}.{minor}.{patch - 1}"
+        if minor:
+            return f"{major}.{minor - 1}.0"
+        self.assertGreater(major, 0)
+        return f"{major - 1}.0.0"
 
     def test_preview_apply_add_update_remove_and_preserve_project(self) -> None:
         data = self.manifest()
@@ -100,6 +104,46 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(0, repeated.returncode, repeated.stderr)
         self.assertIn("already up to date", repeated.stdout)
         self.assertEqual(after, self.manifest_path.read_bytes())
+
+    def test_thread_pilot_upgrade_preserves_project_instructions_and_legacy_tasks(self) -> None:
+        data = self.manifest()
+        data["framework_version"] = self.older_version()
+        references = [
+            f"{folder}/skills/task-execution/references/codex-threads.md"
+            for folder in (".agents", ".claude")
+        ]
+        for reference in references:
+            (self.target / reference).unlink()
+        data["files"] = [item for item in data["files"] if item["path"] not in references]
+        old_routing = b"# Workspace\n\nThe primary agent always acts as the orchestrator.\n"
+        (self.target / "AGENTS.md").write_bytes(old_routing)
+        for item in data["files"]:
+            if item["path"] == "AGENTS.md":
+                item["sha256"] = hashlib.sha256(old_routing).hexdigest()
+        self.write_manifest(data)
+        authored = {
+            "projects/sample/AGENTS.md": old_routing + b"\nKeep my project rules.\n",
+            "projects/sample/workspace-plans/example/tasks/001-build/TASK.md":
+                b'---\nid: "001-build"\nreview_required: true\n---\n# Legacy task\n',
+            "projects/sample/workspace-plans/example/tasks/001-build/PROGRESS.md":
+                b'---\ntask: "001-build"\nstatus: not-started\n---\n# Legacy progress\n',
+        }
+        for name, content in authored.items():
+            path = self.target / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+
+        plan = update.plan_update(self.target, self.actions, self.version)
+        states = {change.path.as_posix(): change.state for change in plan.changes}
+        for reference in references:
+            self.assertEqual("CREATE", states[reference])
+        self.assertEqual("UPDATE", states["AGENTS.md"])
+        update.apply_update(self.target, plan)
+        for reference in references:
+            self.assertTrue((self.target / reference).is_file())
+        for name, content in authored.items():
+            self.assertEqual(content, (self.target / name).read_bytes())
+        self.assertIsNone(update.plan_update(self.target, self.actions, self.version).new_manifest)
 
     def test_local_edit_and_new_path_collision_stop_before_writes(self) -> None:
         data = self.manifest()

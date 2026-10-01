@@ -62,6 +62,10 @@ integration worktree from the approved baseline, then create a task worktree and
 branch from the current integration head as each task becomes actionable.
 Spawn implementer agents only for tasks whose dependencies are integrated and
 complete. Parallel implementation agents must never share a checkout or branch.
+Use subagent execution by default. Dedicated implementation threads are a
+Codex-only pilot; if a task selects `execution_mode: thread`, explain the
+unavailable mode and ask before changing it to subagent execution. Keep the
+same task scope, worktree, progress, handoff, review, and integration contract.
 
 Require an implementation handoff at every planned high-risk checkpoint and
 when a task becomes ready for review. Spawn a read-only reviewer for the exact

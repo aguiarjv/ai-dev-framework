@@ -59,6 +59,13 @@ class PlanStateTests(unittest.TestCase):
         self.assertTrue(self.transition(accept_all=True, dry_run=True))
         self.assertEqual(before, progress.read_bytes())
 
+    def test_review_transition_preserves_dedicated_thread_assignment(self) -> None:
+        self.fixture.set_execution("001-build", thread_id="registered-codex-thread")
+        self.assertTrue(self.transition(accept_all=True))
+        progress = self.fixture.plan_dir / "tasks/001-build/PROGRESS.md"
+        self.assertIn('execution_thread_id: "registered-codex-thread"', progress.read_text())
+        self.assertEqual([], self.fixture.errors())
+
     def test_transition_with_completed_task_keeps_prior_reviews_available(self) -> None:
         self.fixture.write(
             statuses={"001-build": "completed", "002-test": "ready-for-review"},

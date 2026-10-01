@@ -1,8 +1,12 @@
 # <Project Name>
 
 This folder is a managed project inside an AI Dev Framework meta repository.
-The primary agent follows the meta-repository workspace instructions and acts
-as the orchestrator.
+The primary agent follows the meta-repository workspace instructions and
+normally acts as the orchestrator. An explicitly assigned dedicated Codex
+implementation thread acts as the implementer for its named task and uses the
+task-execution skill directly, following the same task scope, worktree,
+progress, and handoff contract as an implementer subagent. It does not
+coordinate the plan or spawn an implementer.
 
 ## Project Paths
 

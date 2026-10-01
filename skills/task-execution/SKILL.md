@@ -5,7 +5,8 @@ description: Execute one approved plan task or review correction in its assigned
 
 # Task Execution
 
-Use this skill inside an `implementer` agent. It is the bounded task contract;
+Use this skill inside an `implementer` subagent or an explicitly assigned
+dedicated Codex implementation thread. It is the bounded task contract;
 routine implementation does not require loading the full plan lifecycle guide.
 Follow the [Handoff Management guide](../../guides/handoff-management.md)
 when recording a handoff. Consult the
@@ -13,6 +14,14 @@ when recording a handoff. Consult the
 only when a task status, dependency, or metadata rule is unclear, and the
 [Orchestration Workflow](../../guides/orchestration-workflow.md) only when the
 delegation boundary is unclear.
+
+Use subagent execution when `TASK.md` omits `execution_mode` or selects
+`subagent`. For `execution_mode: thread`, the coordinator and worker read
+[Codex thread execution](references/codex-threads.md) for bootstrap,
+registration, monitoring, and resume. That mode is a Codex-only pilot and
+requires explicit user selection and authorization to create the separate
+task. A dedicated thread performs the implementer role directly; it does not
+spawn another implementer or coordinate the plan.
 
 ## Start
 
@@ -25,6 +34,9 @@ delegation boundary is unclear.
    orchestrator.
 
 Stop and report a mismatch rather than editing a different checkout or task.
+For a dedicated thread, bootstrap is read-only until the coordinator records
+its `execution_thread_id` and sends the matching start message. Thread
+idleness, archival, or completion does not change task lifecycle status.
 
 ## Implement
 

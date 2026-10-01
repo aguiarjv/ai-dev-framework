@@ -98,6 +98,22 @@ class SourceContractTests(unittest.TestCase):
             self.actions_by_path[f".claude/skills/{helper}"].content,
         )
 
+    def test_thread_reference_installs_and_skill_link_resolves_on_both_platforms(self) -> None:
+        relative = "task-execution/references/codex-threads.md"
+        self.assertEqual(
+            self.actions_by_path[f".agents/skills/{relative}"].content,
+            self.actions_by_path[f".claude/skills/{relative}"].content,
+        )
+        for platform in (".agents", ".claude"):
+            skill = f"{platform}/skills/task-execution/SKILL.md"
+            text = self.actions_by_path[skill].content.decode("utf-8")
+            links = [token.split(")", 1)[0] for token in text.split("(")[1:]]
+            references = [link for link in links if link.startswith("references/")]
+            self.assertTrue(references)
+            for link in references:
+                resolved = posixpath.normpath(posixpath.join(posixpath.dirname(skill), link))
+                self.assertIn(resolved, self.actions_by_path)
+
     def test_commit_management_is_installed_and_required(self) -> None:
         self.assertIn(".agents/guides/commit-management.md", self.actions_by_path)
         self.assertIn(

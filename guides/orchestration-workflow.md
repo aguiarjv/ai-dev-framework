@@ -1,10 +1,12 @@
 # Orchestration Workflow
 
-The primary agent in an AI Dev Framework workspace acts as the orchestrator.
-It owns user communication, decisions, workflow state, delegation, and final
-synthesis. It performs simple operations directly and delegates work that
-benefits from repository exploration, live-database exploration, isolated
-implementation, fixes, or independent review to specialized subagents.
+The primary agent in an AI Dev Framework workspace normally acts as the
+orchestrator. It owns user communication, decisions, workflow state,
+delegation, and final synthesis. It performs simple operations directly and
+delegates work that benefits from repository exploration, live-database exploration, isolated
+implementation, fixes, or independent review to specialized subagents. An
+explicitly assigned dedicated Codex implementation thread acts as the
+implementer for its named task, following the same task contract.
 
 ## Execution Threshold
 
@@ -72,6 +74,39 @@ Use a fresh implementer session for a correction pass. Supply the applicable
 review and latest task handoff instead of reusing the full context of the agent
 that introduced the change.
 
+## Implementation Execution Mode
+
+Use `subagent` by default, including for tasks whose `TASK.md` omits
+`execution_mode`. The user may select `execution_mode: thread` for a task that
+benefits from a persistent, directly supervised implementation conversation.
+Record that selection during planning; changing it later is a definition
+change that requires the user's decision. Exploration, database exploration,
+and review continue to use specialized subagents.
+
+Dedicated threads are a Codex-only pilot. Claude Code keeps subagent execution;
+if it encounters a thread task, explain the unavailable mode and ask whether
+to change that task to subagent execution. Do not silently switch modes.
+The same rule applies when the active Codex client lacks thread controls.
+
+After the later implementation request, use the task-execution skill's
+`.agents/skills/task-execution/references/codex-threads.md` procedure. It covers
+explicit thread-creation authorization, read-only bootstrap, assignment
+registration, launch, checkpoints, and cold resume. Create a fresh conversation,
+not a coordinator fork. A dedicated thread implements its assigned task
+directly and does not start another implementer or take over plan coordination.
+
+Each task retains its own worktree and branch. The orchestrator is the sole
+writer of plan progress and the integration checkout. Keep at most one live
+implementation worker per task, across both execution modes and all plans in
+the managed project. Verify the previous worker has stopped before replacing
+it or starting a correction session. Preserve previous thread identifiers in
+task progress history and handoffs when registering a replacement.
+
+Thread completion or idleness is an execution signal, not a task result.
+Consume the task's progress and exact-head handoff before requesting review.
+Both execution modes use the existing checkpoint, final review, correction,
+integration, delivery, and cleanup rules.
+
 ## Follow-up Fix Routing
 
 Before treating a fix request as a new plan, inspect related active and
@@ -118,13 +153,14 @@ existing plan:
 5. After that request, create the integration worktree from the recorded
    baseline. Create task worktrees from the current integration head only when
    their dependencies are integrated and complete.
-6. Spawn one implementer per actionable task. Parallel implementers use
-   separate worktrees and branches.
+6. Assign one implementer per actionable task using its recorded execution
+   mode. Parallel implementers use separate worktrees and branches.
 7. At a planned high-risk checkpoint, or when implementation for a task is
    ready, require an implementation handoff and spawn a reviewer.
 8. If a final task review is clean, set the task to `ready-for-integration`.
    If it has actionable findings, set the task to `needs-fix`, persist a
-   review-to-fix handoff, and spawn a fresh implementer to correct it.
+   review-to-fix handoff, and assign a fresh implementer to correct it using
+   the task's execution mode.
 9. Serialize cleanly reviewed task merges into the plan integration branch.
    Complete a task only after its integrated validation passes and its
    integration commit is recorded. Reconcile merge conflicts in a fresh task
@@ -148,7 +184,7 @@ report or the plan explicitly requires one.
 
 ## Delegation Contract
 
-Every subagent assignment states:
+Every subagent or dedicated implementation thread assignment states:
 
 - The managed project and the subagent's role.
 - The exact objective and boundaries of the assignment.
@@ -164,7 +200,7 @@ before sending work that depends on it.
 
 ## Handoff Rule
 
-Every subagent returns a structured handoff at a meaningful checkpoint and at
+Every assigned agent returns a structured handoff at a meaningful checkpoint and at
 the end of its assignment. Implementation agents write their task-local
 handoff and update task progress before returning. Read-only explorers and
 reviewers return a complete handoff payload to the orchestrator; the

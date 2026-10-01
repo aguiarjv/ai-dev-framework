@@ -35,6 +35,12 @@ they appear in the workspace's routing index.
   Proceed only after a later user message explicitly asks to implement the
   created plan or approved follow-up correction task. Record that request in
   plan progress before creating or restoring worktrees.
+  Use each task's recorded execution mode; absent `execution_mode` means
+  subagent. For the user-selected Codex thread pilot, follow the task-execution
+  skill's `references/codex-threads.md`. Register its `execution_thread_id`
+  before authorizing edits, and check existing worker status before resuming
+  or replacing it. Claude Code keeps subagents; ask before changing a thread
+  task to that mode.
 - Resume or update: read Statuses and Managing Progress. Read the plan
   definition and progress, then only the task files relevant to current or next
   actions. Verify recorded worktree, branch, and head against Git before

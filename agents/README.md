@@ -22,5 +22,7 @@ before writing a target. Do not add rules that apply to only one target project.
   database and returns a structured handoff.
 - `implementer` implements one approved task or correction pass in an
   assigned worktree and writes a task-local handoff.
+  Codex can run this same role in an explicitly selected dedicated thread;
+  Claude Code retains subagent execution in the pilot.
 - `reviewer` performs read-only task and final plan integration reviews and
   returns review and handoff payloads for the orchestrator to persist.

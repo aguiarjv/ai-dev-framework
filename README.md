@@ -106,6 +106,16 @@ discovers the workspace-level agents, skills, and instructions. Use the
 `project-setup` skill to clone or initialize managed projects after the base
 workspace has been installed.
 
+Implementation tasks use subagents by default. For long work the user wants
+to supervise directly, the Codex pilot also supports dedicated implementation
+threads: select `execution_mode: thread` in the task and explicitly request
+creation of its separate Codex task when starting implementation. The thread
+bootstraps without edits, then the coordinator records `execution_thread_id`
+before authorizing work. It uses the same worktree, handoff, independent review,
+and integration gates. Claude Code continues to use subagents. See the
+[Codex thread procedure and worked pilot](skills/task-execution/references/codex-threads.md)
+and the [existing-project upgrade instructions](installer/README.md#dedicated-thread-pilot-upgrade).
+
 For native Codex work, the installed `.codex/hooks.json` records root turns and
 subagent starts/stops in `.agents/metrics/codex-native.jsonl`. Codex requires
 the user to review and trust this project-local hook in `/hooks` before it runs;

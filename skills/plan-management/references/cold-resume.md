@@ -16,6 +16,12 @@ useful after compaction or a handoff to another orchestrator.
 4. Run `scripts/validate_plan.py <path-to-plan>`. Report any discrepancy and
    resolve it before editing state or launching work. Confirm no earlier agent
    is still running before starting a replacement.
+   For a thread task, read its `execution_thread_id` and use available Codex
+   thread controls to verify identity and status. Observe a running worker;
+   an idle conversation requires checking the task's handoff and review gate.
+   Missing or inaccessible status does not prove the worker stopped. Use the
+   task-execution skill's `references/codex-threads.md` before resuming or
+   replacing it, and retain prior IDs as history.
 5. Distinguish approval to create plan files from a later user message explicitly
    requesting implementation. Check the plan progress `Implementation Request`
    section when present. If the plan is still awaiting that message,

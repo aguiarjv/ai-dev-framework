@@ -8,6 +8,7 @@ depends_on: []
 planned_worktree: "worktrees/<plan-name>/<task-id>"
 planned_branch: "task/<plan-name>/<task-id>"
 review_required: true
+execution_mode: subagent
 ---
 
 # <Task Title>

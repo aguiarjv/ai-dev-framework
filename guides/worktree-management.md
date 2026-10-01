@@ -5,6 +5,11 @@ every implementation task. The orchestrator owns the integration checkout and
 task worktree creation and assignment; implementation agents work only in the
 checkout recorded for their task.
 
+These assignments apply to both implementer subagents and dedicated Codex
+implementation threads. A new conversation does not create an isolated
+checkout. Use the existing task worktree and verify it explicitly even when
+the thread inherits the coordinator's working directory.
+
 ## Planning and Naming
 
 During planning, record these intended values in each `TASK.md`:

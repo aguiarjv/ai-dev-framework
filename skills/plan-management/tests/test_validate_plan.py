@@ -527,6 +527,21 @@ uncommitted_changes: false
     def errors(self) -> list[str]:
         return PlanValidator(self.plan_dir).run()
 
+    def set_execution(
+        self, task_id: str, *, mode: object = "thread", thread_id: object = None
+    ) -> None:
+        task_dir = self.plan_dir / "tasks" / task_id
+        for name, key, value in (
+            ("TASK.md", "execution_mode", mode),
+            ("PROGRESS.md", "execution_thread_id", thread_id),
+        ):
+            path = task_dir / name
+            text = path.read_text(encoding="utf-8")
+            path.write_text(
+                text.replace("---\n", f"---\n{key}: {json.dumps(value)}\n", 1),
+                encoding="utf-8",
+            )
+
 
 class PlanValidatorTests(unittest.TestCase):
     def run_fixture(self, **kwargs: object) -> list[str]:
@@ -1304,6 +1319,161 @@ class PlanValidatorTests(unittest.TestCase):
         )
         self.assertTrue(any("share worktree" in error for error in errors))
         self.assertTrue(any("share branch" in error for error in errors))
+
+    def test_thread_selection_before_launch_and_legacy_tasks_are_valid(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write()
+            self.assertEqual([], fixture.errors())
+            fixture.set_execution("001-build")
+            self.assertEqual([], fixture.errors())
+
+    def test_mixed_execution_modes_can_run_in_parallel(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task: "in-progress" for task in fixture.task_ids},
+                plan_status="in-progress",
+                dependencies={task: [] for task in fixture.task_ids},
+            )
+            fixture.set_execution("001-build", thread_id="codex-thread-1")
+            fixture.set_execution("002-test", mode="subagent")
+            self.assertEqual([], fixture.errors())
+
+    def test_invalid_execution_mode_is_rejected(self) -> None:
+        for mode in (None, "fork", ["thread"]):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as temporary:
+                fixture = PlanFixture(Path(temporary))
+                fixture.write()
+                fixture.set_execution("001-build", mode=mode)
+                self.assertTrue(any("execution_mode must" in error for error in fixture.errors()))
+
+    def test_thread_id_is_required_after_implementation_starts(self) -> None:
+        for status in ("in-progress", "ready-for-review", "ready-for-integration", "needs-fix"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as temporary:
+                fixture = PlanFixture(Path(temporary))
+                fixture.write(
+                    statuses={"001-build": status, "002-test": "not-started"},
+                    plan_status="in-progress",
+                )
+                fixture.set_execution("001-build")
+                self.assertTrue(any("must record execution_thread_id" in error for error in fixture.errors()))
+
+    def test_invalid_thread_ids_are_rejected(self) -> None:
+        for identifier in ("", "two threads", " thread", "thread\n", "thread\u0000", True, ["thread"]):
+            with self.subTest(identifier=identifier), tempfile.TemporaryDirectory() as temporary:
+                fixture = PlanFixture(Path(temporary))
+                fixture.write(
+                    statuses={"001-build": "in-progress", "002-test": "not-started"},
+                    plan_status="in-progress",
+                )
+                fixture.set_execution("001-build", thread_id=identifier)
+                self.assertTrue(any("opaque ID" in error for error in fixture.errors()))
+
+    def test_subagent_and_unstarted_task_cannot_claim_thread(self) -> None:
+        for mode in ("subagent", "thread"):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as temporary:
+                fixture = PlanFixture(Path(temporary))
+                fixture.write()
+                fixture.set_execution("001-build", mode=mode, thread_id="codex-thread-1")
+                self.assertTrue(any("leave execution_thread_id null" in error for error in fixture.errors()))
+
+    def test_missing_mode_defaults_to_subagent_even_with_thread_id(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write()
+            progress = fixture.plan_dir / "tasks/001-build/PROGRESS.md"
+            progress.write_text(progress.read_text().replace(
+                "---\n", '---\nexecution_thread_id: "codex-thread-1"\n', 1
+            ))
+            self.assertTrue(any("subagent execution" in error for error in fixture.errors()))
+
+    def test_blocked_thread_launch_can_record_no_id(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={"001-build": "blocked", "002-test": "not-started"},
+                plan_status="blocked",
+                plan_blocker="Thread creation unavailable; resolve with the user.",
+                task_blockers={"001-build": "Thread creation unavailable; resolve with the user."},
+            )
+            fixture.set_execution("001-build")
+            self.assertEqual([], fixture.errors())
+
+    def test_failed_first_thread_launch_can_retain_prior_subagent_artifacts(self) -> None:
+        artifacts = {
+            "latest_handoff": "workspace-plans/demo-plan/tasks/001-build/handoffs/001-result.md",
+            "latest_review": "workspace-reviews/demo-plan/demo-plan-001-build-review-001.md",
+        }
+        for key, artifact in artifacts.items():
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as temporary:
+                fixture = PlanFixture(Path(temporary))
+                fixture.write(
+                    statuses={"001-build": "blocked", "002-test": "not-started"},
+                    plan_status="blocked",
+                    plan_blocker="First thread launch failed; resolve with the user.",
+                )
+                fixture.set_execution("001-build")
+                artifact_path = fixture.project_root / artifact
+                artifact_path.write_text("# Prior execution artifact\n", encoding="utf-8")
+                progress = fixture.plan_dir / "tasks/001-build/PROGRESS.md"
+                content = progress.read_text(encoding="utf-8").replace(
+                    f"{key}: null", f"{key}: {json.dumps(artifact)}"
+                )
+                content = content.replace(
+                    "## Decisions\n\n- None.",
+                    "## Decisions\n\n- User selected thread execution for corrections; "
+                    "the previous subagent stopped before the first thread launch.",
+                )
+                progress.write_text(content, encoding="utf-8")
+                self.assertEqual([], fixture.errors())
+
+    def test_non_completed_tasks_cannot_share_thread_id(self) -> None:
+        for status in ("in-progress", "ready-for-review", "blocked"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as temporary:
+                fixture = PlanFixture(Path(temporary))
+                fixture.write(
+                    statuses={task: status for task in fixture.task_ids},
+                    plan_status="blocked" if status == "blocked" else "in-progress",
+                    plan_blocker="Workers unavailable." if status == "blocked" else "None.",
+                    dependencies={task: [] for task in fixture.task_ids},
+                )
+                for task in fixture.task_ids:
+                    fixture.set_execution(task, thread_id="shared-thread")
+                self.assertTrue(any("share execution_thread_id" in error for error in fixture.errors()))
+
+    def test_completed_thread_metadata_survives_archival_without_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task: "completed" for task in fixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            fixture.set_execution("001-build", thread_id="historical-thread")
+            self.assertEqual([], fixture.errors())
+            archived = fixture.plan_dir.parent / "done" / fixture.plan_dir.name
+            archived.parent.mkdir()
+            fixture.plan_dir.rename(archived)
+            self.assertEqual([], PlanValidator(archived).run())
+
+    def test_completed_thread_requires_historical_id_and_review(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = PlanFixture(Path(temporary))
+            fixture.write(
+                statuses={task: "completed" for task in fixture.task_ids},
+                plan_status="completed",
+                plan_criteria_checked=True,
+            )
+            fixture.set_execution("001-build")
+            self.assertTrue(any("must record execution_thread_id" in error for error in fixture.errors()))
+            path = fixture.plan_dir / "tasks/001-build/PROGRESS.md"
+            text = path.read_text().replace("execution_thread_id: null", 'execution_thread_id: "done-thread"')
+            path.write_text(text.replace(
+                'latest_review: "workspace-reviews/demo-plan/demo-plan-001-build-review-001.md"',
+                "latest_review: null",
+            ))
+            self.assertTrue(any("clean latest_review" in error for error in fixture.errors()))
 
 
 if __name__ == "__main__":

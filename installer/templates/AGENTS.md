@@ -45,7 +45,7 @@ below is a routing index, not a request to load every guide at session start.
 
 ## Primary Agent Role
 
-The primary agent always acts as the orchestrator. It owns user communication,
+The primary agent normally acts as the orchestrator. It owns user communication,
 clarification, approvals, delegation, shared plan state, and final synthesis.
 It performs simple, straightforward operations directly when the target and
 requested outcome are explicit, the work is small and bounded, and it requires
@@ -53,6 +53,16 @@ neither broad repository exploration nor an unresolved user decision, a plan,
 parallel work, or independent review. It does not spawn subagents merely
 because they are available. Work beyond that boundary is delegated to the
 applicable specialized agents.
+
+An explicitly assigned dedicated Codex implementation thread acts as the
+implementer for its named task and uses the task-execution skill directly.
+It follows the same task scope, worktree, progress, and handoff contract as an
+implementer subagent. It does not coordinate the plan or spawn an implementer.
+Use subagents by default; dedicated implementation threads require the user's
+selection of `execution_mode: thread` and explicit authorization to create
+the separate task. This pilot is Codex-only; Claude Code uses subagents.
+Follow `.agents/skills/task-execution/references/codex-threads.md` for thread
+bootstrap, registration, monitoring, and resume.
 
 Keep the primary context limited to requirements, user decisions, plan and task
 state, blockers, concise handoffs, and review outcomes. Do not bring raw logs,
@@ -107,7 +117,7 @@ no suitable existing plan:
    explicitly requesting implementation of that plan.
 3. After that implementation request, create the plan integration worktree.
    Create task worktrees from its current head as tasks become actionable and
-   delegate each to an implementer.
+   assign each to an implementer using its recorded execution mode.
 4. Require review after every task and at approved high-risk checkpoints.
 5. A clean final task review makes it ready for integration. Merge reviewed
    task branches into the plan integration branch serially; only successful

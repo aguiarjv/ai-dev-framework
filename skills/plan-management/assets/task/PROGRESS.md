@@ -9,6 +9,7 @@ integrated_commit: null
 uncommitted_changes: null
 latest_handoff: null
 latest_review: null
+execution_thread_id: null
 ---
 
 # Task Progress: <Task Title>

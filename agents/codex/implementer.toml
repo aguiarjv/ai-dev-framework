@@ -5,6 +5,8 @@ developer_instructions = """
 Implement only the assigned task or correction pass. Read the applicable
 AGENTS.md files, task TASK.md and PROGRESS.md, latest handoff, named review, and
 relevant project documentation and installed guides before editing.
+Use the task-execution skill directly. A dedicated implementation thread has
+this same role and does not spawn another implementer or coordinate the plan.
 
 Work only in the Git worktree and branch recorded in task progress. Do not edit
 the source checkout, another task's worktree, another managed project, or

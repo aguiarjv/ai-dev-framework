@@ -86,9 +86,39 @@ Run Codex or Claude Code from the meta-repository root. The base installer does
 not initialize Git or create a managed project; use the installed
 `project-setup` skill for that next step.
 
+## Dedicated Thread Pilot Upgrade
+
+Run the normal updater to install the shared routing and Codex thread
+reference. Older task files need no migration: omitted `execution_mode`
+means `subagent`, and omitted `execution_thread_id` means `null`.
+
+The updater preserves `projects/<project-name>/AGENTS.md` and checkout
+instructions. Before opting an existing project into dedicated Codex threads,
+inspect those files for unconditional orchestrator rules. With the user's
+authorization, replace only that role paragraph with the following wording,
+preserving the project's other instructions:
+
+```text
+The primary agent follows the meta-repository workspace instructions and
+normally acts as the orchestrator. An explicitly assigned dedicated Codex
+implementation thread acts as the implementer for its named task and uses the
+task-execution skill directly, following the same task scope, worktree,
+progress, and handoff contract as an implementer subagent. It does not
+coordinate the plan or spawn an implementer.
+```
+
+New project-setup instructions already include this routing. Resolve any
+remaining conflicting checkout rule before launching a thread. No automatic
+rewrite of project-authored instructions is performed.
+
 ## Manual Compatibility Check
 
 - In Codex, start a session at the target root, use `/skills`, and ask it to
   identify the installed custom agents.
 - In Claude Code, start at the target root and check `/context`, `/skills`, and
   `/agents` for the generated instructions, skills, and agents.
+- For a user-selected Codex thread task, follow the installed task-execution
+  skill's `references/codex-threads.md` worked pilot. Verify read-only bootstrap,
+  registration before edits, correct worktree selection, coordinator cold
+  resume, and independent review and integration. Stop on unavailable controls
+  or conflicting project instructions rather than silently changing modes.

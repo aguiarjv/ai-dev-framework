@@ -20,6 +20,7 @@ TASK_STATUSES = PLAN_STATUSES | {
     "ready-for-integration",
     "needs-fix",
 }
+EXECUTION_MODES = {"subagent", "thread"}
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 COMMIT_PATTERN = re.compile(r"^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$")
@@ -741,6 +742,9 @@ class PlanValidator:
             self.error(document.path, "planned_branch must be a non-empty string")
         if document.frontmatter.get("review_required") is not True:
             self.error(document.path, "review_required must be true")
+        mode = document.frontmatter.get("execution_mode", "subagent")
+        if not isinstance(mode, str) or mode not in EXECUTION_MODES:
+            self.error(document.path, "execution_mode must be subagent or thread")
 
     def validate_task_progress(
         self, document: MarkdownDocument, plan_id: str, task_id: str
@@ -795,6 +799,28 @@ class PlanValidator:
             self.error(document.path, "a completed task must record its integrated_commit")
         elif status != "completed" and integrated_commit is not None:
             self.error(document.path, "an incomplete task must set integrated_commit to null")
+
+    def validate_execution_assignment(
+        self, definition: MarkdownDocument, progress: MarkdownDocument
+    ) -> None:
+        # These fields are optional for plans authored before dedicated threads.
+        mode = definition.frontmatter.get("execution_mode", "subagent")
+        identifier = progress.frontmatter.get("execution_thread_id")
+        valid_identifier = (
+            isinstance(identifier, str)
+            and bool(identifier)
+            and not any(char.isspace() or ord(char) < 32 for char in identifier)
+        )
+        if identifier is not None and not valid_identifier:
+            self.error(progress.path, "execution_thread_id must be a non-empty opaque ID or null")
+        if mode == "subagent" and identifier is not None:
+            self.error(progress.path, "subagent execution must leave execution_thread_id null")
+        status = progress.frontmatter.get("status")
+        if mode == "thread":
+            if status == "not-started" and identifier is not None:
+                self.error(progress.path, "a not-started task must leave execution_thread_id null")
+            elif status not in {"not-started", "blocked"} and not valid_identifier:
+                self.error(progress.path, "started thread execution must record execution_thread_id")
 
     def validate_related_paths(
         self, document: MarkdownDocument
@@ -1423,6 +1449,17 @@ class PlanValidator:
             expected_actions,
         )
         self.validate_parallel_assignments(plan_progress, task_progress)
+        thread_assignments: dict[str, list[str]] = {}
+        for task_id, progress in task_progress.items():
+            identifier = progress.frontmatter.get("execution_thread_id")
+            if progress.frontmatter.get("status") != "completed" and isinstance(identifier, str):
+                thread_assignments.setdefault(identifier, []).append(task_id)
+        for identifier, task_ids in thread_assignments.items():
+            if len(task_ids) > 1:
+                self.error(
+                    plan_progress.path,
+                    f"active tasks {', '.join(sorted(task_ids))} share execution_thread_id {identifier!r}",
+                )
 
     def validate_next_actions(
         self,
@@ -1658,6 +1695,7 @@ class PlanValidator:
                 progress_documents[task_id] = progress
                 self.validate_task_progress(progress, plan_id, task_id)
             if definition is not None and progress is not None:
+                self.validate_execution_assignment(definition, progress)
                 self.validate_task_completion(definition, progress)
 
         task_ids = {task_dir.name for task_dir in task_dirs}

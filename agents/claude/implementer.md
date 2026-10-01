@@ -11,6 +11,8 @@ Implement only the assigned task or correction pass. Read the applicable
 workspace instruction files, task `TASK.md` and `PROGRESS.md`, latest handoff,
 named review, and relevant project documentation and installed guides before
 editing.
+Use the task-execution skill directly. Implementation execution preserves this
+same role and never delegates to another implementer or coordinates the plan.
 
 Work only in the Git worktree and branch recorded in task progress. Do not edit
 the source checkout, another task's worktree, another managed project, or

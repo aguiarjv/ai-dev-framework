@@ -152,12 +152,33 @@ Each task definition records its intended isolated assignment:
   managed project.
 - `planned_branch`: The branch intended for the task.
 - `review_required`: `true` for the required final implementation review.
+- `execution_mode`: `subagent` by default, or user-selected `thread` for the
+  dedicated Codex implementation pilot. Older tasks omitting this field use
+  subagents. Selecting a mode does not authorize starting implementation.
 
 Plan progress records `integration_worktree`, `integration_branch`,
 `integration_head_commit`, and `integration_uncommitted_changes` for the actual
 combined checkout, plus `latest_review` for the current plan integration
 review. Task progress records `integrated_commit`, which remains `null` until
 the reviewed task result is merged into the plan integration branch.
+Task progress may also record `execution_thread_id`: `null` before launch or
+for subagent execution, otherwise the opaque identifier of its current
+dedicated implementation thread. Initial bootstrap is read-only; register
+the ID and set `in-progress` before sending a matching start message. Started
+thread tasks require an ID, except a failed first thread launch may be
+`blocked` without one and must record a resolution action. This includes a
+user-approved switch from subagent execution, retaining its prior artifacts.
+Preserve previous thread IDs in progress history and handoffs when replacing
+a worker. Retain the last ID after completion.
+
+The validator checks metadata and duplicate non-completed thread assignments
+within a plan. It cannot establish earlier launch history from a current
+snapshot; a handoff or review may belong to a previous subagent. The
+orchestrator must preserve any known worker ID and separately
+verify live thread ownership across plans and clients. An ID or a completed
+conversation is not proof of task completion. Follow the task-execution
+skill's Codex thread reference for launch, checkpoint, resume, correction,
+and unavailable-client behavior.
 
 ## Statuses
 
@@ -415,9 +436,11 @@ repository instructions. Update the waiting next actions, then create the plan
 integration worktree from the recorded baseline. Create task worktrees for
 immediately actionable tasks from its current head. Create
 dependent task worktrees only after their dependencies are integrated and
-complete. Delegate actionable tasks to implementers. A generic request to
-continue planning or an approval of the plan files is not an implementation
-request.
+complete. Assign actionable tasks to implementers using their recorded
+execution modes. Thread tasks also require explicit authorization to create
+the separate Codex tasks and a bootstrap/register/start handshake. A generic
+request to continue planning or an approval of the plan files is not an
+implementation request.
 
 For an approved follow-up correction task, the later implementation request
 authorizes restoring the existing plan integration checkout when needed and

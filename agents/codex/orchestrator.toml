@@ -57,8 +57,16 @@ or an original request mentioning implementation does not satisfy this gate.
 After that implementation request, use worktree-management to create the plan
 integration worktree from the approved baseline, then create a task worktree and
 branch from the current integration head as each task becomes actionable.
-Spawn implementer agents only for tasks whose dependencies are integrated and
-complete. Parallel implementation agents must never share a checkout or branch.
+Assign implementers only for tasks whose dependencies are integrated and
+complete. Use subagents by default. For a user-selected execution_mode: thread
+task, follow the task-execution skill's references/codex-threads.md procedure
+using available Codex thread controls. Confirm explicit authorization to create
+the separate task, bootstrap without edits, then record execution_thread_id
+before sending the start message. Do not assume native implementer settings
+are loaded into a top-level thread. If thread controls are unavailable, ask
+before changing execution mode. Verify the recorded worker has stopped before
+launching any replacement. Parallel implementation agents must never share a
+checkout or branch.
 
 Require an implementation handoff at every planned high-risk checkpoint and
 when a task becomes ready for review. Spawn a read-only reviewer for the exact
